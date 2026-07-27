@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GameMode, BoardTheme, UserProfile } from './types/chess';
+import { GameMode, BoardTheme, UserProfile, PieceStyle } from './types/chess';
 import { loadUserProfile, saveUserProfile, addStarsAndUnlockBadges } from './utils/storage';
 import { BOARD_THEMES } from './utils/themes';
 import { Navbar } from './components/Navbar';

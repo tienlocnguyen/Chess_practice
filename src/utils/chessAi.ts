@@ -153,7 +153,8 @@ function minimax(
   }
 }
 
-export function getAiMove(game: Chess, level: AiLevel): Move | null {
+export function getAiMove(gameInstance: Chess, level: AiLevel): Move | null {
+  const game = new Chess(gameInstance.fen());
   const moves = game.moves({ verbose: true });
   if (moves.length === 0) return null;
 
@@ -229,7 +230,8 @@ export function getAiMove(game: Chess, level: AiLevel): Move | null {
   return bestMove;
 }
 
-export function getBestMoveHint(game: Chess): Move | null {
+export function getBestMoveHint(gameInstance: Chess): Move | null {
+  const game = new Chess(gameInstance.fen());
   const moves = game.moves({ verbose: true });
   if (moves.length === 0) return null;
 

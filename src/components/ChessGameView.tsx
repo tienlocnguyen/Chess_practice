@@ -74,33 +74,50 @@ export const ChessGameView: React.FC<ChessGameViewProps> = ({
 
   // AI Turn Trigger
   useEffect(() => {
+    let active = true;
+
     if (
       mode === 'training' &&
       game.turn() !== playerSide &&
-      !game.isGameOver() &&
-      !isAiThinking
+      !game.isGameOver()
     ) {
       setIsAiThinking(true);
       const timer = setTimeout(() => {
-        const aiMove = getAiMove(game, aiLevel);
-        if (aiMove) {
-          const moveResult = game.move(aiMove);
-          setGame(new Chess(game.fen()));
-          setLastMove(moveResult);
-          setHintMove(null);
+        if (!active) return;
+        try {
+          const aiMove = getAiMove(game, aiLevel);
+          if (aiMove) {
+            const moveResult = game.move({
+              from: aiMove.from,
+              to: aiMove.to,
+              promotion: aiMove.promotion || 'q',
+            });
+            const newGame = new Chess(game.fen());
+            setGame(newGame);
+            setLastMove(moveResult);
+            setHintMove(null);
 
-          if (userProfile.soundEnabled) {
-            if (moveResult?.captured) playSound.capture();
-            else if (game.isCheck()) playSound.check();
-            else playSound.move();
+            if (userProfile.soundEnabled) {
+              if (moveResult?.captured) playSound.capture();
+              else if (newGame.isCheck()) playSound.check();
+              else playSound.move();
+            }
+          }
+        } catch (err) {
+          console.error('Error making AI move:', err);
+        } finally {
+          if (active) {
+            setIsAiThinking(false);
           }
         }
-        setIsAiThinking(false);
-      }, 400 + Math.random() * 400);
+      }, 350 + Math.random() * 250);
 
-      return () => clearTimeout(timer);
+      return () => {
+        active = false;
+        clearTimeout(timer);
+      };
     }
-  }, [game, mode, playerSide, aiLevel, isAiThinking, userProfile.soundEnabled]);
+  }, [game, mode, playerSide, aiLevel, userProfile.soundEnabled]);
 
   // Player Move Handler
   const handlePlayerMove = (from: Square, to: Square, promotion?: string) => {

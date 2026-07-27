@@ -249,7 +249,8 @@ export const TRANSLATIONS = {
   }
 };
 
-export function getTranslation(lang: Language, key: keyof typeof TRANSLATIONS['en']): string {
-  const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
+export function getTranslation(lang: Language | string, key: keyof typeof TRANSLATIONS['en']): string {
+  const selectedLang = (lang === 'vi' || lang === 'en') ? lang : 'vi';
+  const dict = TRANSLATIONS[selectedLang] || TRANSLATIONS.en;
   return dict[key] || TRANSLATIONS.en[key] || key;
 }
