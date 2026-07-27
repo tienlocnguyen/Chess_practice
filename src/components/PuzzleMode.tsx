@@ -4,20 +4,29 @@ import { BoardTheme, UserProfile } from '../types/chess';
 import { KID_PUZZLES } from '../utils/puzzles';
 import { ChessBoard } from './ChessBoard';
 import { playSound } from '../utils/sound';
-import { getTranslation } from '../utils/i18n';
+import { getTranslation, getPuzzleTranslation } from '../utils/i18n';
 import confetti from 'canvas-confetti';
-import { Puzzle as PuzzleIcon, Sparkles, CheckCircle, HelpCircle, RefreshCw, ArrowRight, ArrowLeft, Grid, Filter, X, Star, AlertTriangle, Send } from 'lucide-react';
+import { Puzzle as PuzzleIcon, Sparkles, CheckCircle, HelpCircle, RefreshCw, ArrowRight, ArrowLeft, Grid, X, Star, AlertTriangle, Send, Check } from 'lucide-react';
 
 interface PuzzleModeProps {
   theme: BoardTheme;
   userProfile: UserProfile;
-  onSolvePuzzle: (rewardStars: number) => void;
+  onSolvePuzzle: (puzzleId: string, rewardStars: number, nextLevelIdx?: number) => void;
+  onSelectLevelIdx?: (idx: number) => void;
 }
 
 type FilterDifficulty = 'All' | 'Easy' | 'Medium' | 'Tricky' | 'Expert';
 
-export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSolvePuzzle }) => {
-  const [currentIdx, setCurrentIdx] = useState(0);
+export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSolvePuzzle, onSelectLevelIdx }) => {
+  const [currentIdx, setCurrentIdx] = useState(() => {
+    if (typeof userProfile.lastPuzzleIndex === 'number' && userProfile.lastPuzzleIndex >= 0 && userProfile.lastPuzzleIndex < KID_PUZZLES.length) {
+      return userProfile.lastPuzzleIndex;
+    }
+    const completed = userProfile.completedPuzzleIds || [];
+    const unsolvedIdx = KID_PUZZLES.findIndex((p) => !completed.includes(p.id));
+    return unsolvedIdx !== -1 ? unsolvedIdx : 0;
+  });
+
   const [selectedDifficulty, setSelectedDifficulty] = useState<FilterDifficulty>('All');
   const [isLevelModalOpen, setIsLevelModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -35,12 +44,12 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
   const [errorMsg, setErrorMsg] = useState('');
 
   const lang = userProfile.language || 'vi';
+  const activePuzzleText = getPuzzleTranslation(activePuzzle, lang);
 
   const handleReportSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (userProfile.soundEnabled) playSound.buttonClick();
 
-    // Log feedback or store locally
     const reports = JSON.parse(localStorage.getItem('reported_puzzles') || '[]');
     reports.push({
       level: currentIdx + 1,
@@ -51,9 +60,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
     });
     localStorage.setItem('reported_puzzles', JSON.stringify(reports));
 
-    const msg = lang === 'vi'
-      ? `Cảm ơn bạn! Báo lỗi cho Level ${currentIdx + 1} đã được ghi nhận.`
-      : `Thank you! Feedback for Level ${currentIdx + 1} has been received.`;
+    const msg = getTranslation(lang, 'reportSuccessMsg', { level: currentIdx + 1 });
     
     setReportToast(msg);
     setIsReportModalOpen(false);
@@ -71,6 +78,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
   const selectPuzzleByIdx = (idx: number) => {
     if (userProfile.soundEnabled) playSound.buttonClick();
     setCurrentIdx(idx);
+    onSelectLevelIdx?.(idx);
     const puzzle = KID_PUZZLES[idx];
     setGame(new Chess(puzzle.fen));
     setMoveStep(0);
@@ -79,6 +87,25 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
     setShowHint(false);
     setErrorMsg('');
     setIsLevelModalOpen(false);
+  };
+
+  const handleSelectFilter = (diff: FilterDifficulty) => {
+    if (userProfile.soundEnabled) playSound.buttonClick();
+    setSelectedDifficulty(diff);
+
+    const newFiltered = KID_PUZZLES.filter(
+      (p) => diff === 'All' || p.difficulty === diff
+    );
+
+    const isCurrentInList = newFiltered.some((p) => p.id === activePuzzle.id);
+    if (!isCurrentInList && newFiltered.length > 0) {
+      const completed = userProfile.completedPuzzleIds || [];
+      const firstUnsolved = newFiltered.find((p) => !completed.includes(p.id)) || newFiltered[0];
+      const targetIdx = KID_PUZZLES.findIndex((p) => p.id === firstUnsolved.id);
+      if (targetIdx !== -1) {
+        selectPuzzleByIdx(targetIdx);
+      }
+    }
   };
 
   const handleMove = (from: Square, to: Square, promotion?: string) => {
@@ -107,7 +134,8 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
           setSolved(true);
           if (userProfile.soundEnabled) playSound.duoSuccess();
           confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
-          onSolvePuzzle(activePuzzle.starsReward);
+          const nextLevelIdx = (currentIdx + 1) % KID_PUZZLES.length;
+          onSolvePuzzle(activePuzzle.id, activePuzzle.starsReward, nextLevelIdx);
         } else {
           const newGame = new Chess(game.fen());
           setGame(newGame);
@@ -155,14 +183,39 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
   };
 
   const handleNext = () => {
-    const nextIdx = (currentIdx + 1) % KID_PUZZLES.length;
-    selectPuzzleByIdx(nextIdx);
+    if (filteredPuzzles.length === 0) return;
+    const currentFilteredIdx = filteredPuzzles.findIndex((p) => p.id === activePuzzle.id);
+    const nextFilteredIdx = currentFilteredIdx === -1 ? 0 : (currentFilteredIdx + 1) % filteredPuzzles.length;
+    const targetPuzzle = filteredPuzzles[nextFilteredIdx];
+    const targetIdx = KID_PUZZLES.findIndex((p) => p.id === targetPuzzle.id);
+    if (targetIdx !== -1) {
+      selectPuzzleByIdx(targetIdx);
+    }
   };
 
   const handlePrev = () => {
-    const prevIdx = (currentIdx - 1 + KID_PUZZLES.length) % KID_PUZZLES.length;
-    selectPuzzleByIdx(prevIdx);
+    if (filteredPuzzles.length === 0) return;
+    const currentFilteredIdx = filteredPuzzles.findIndex((p) => p.id === activePuzzle.id);
+    const prevFilteredIdx = currentFilteredIdx === -1 ? 0 : (currentFilteredIdx - 1 + filteredPuzzles.length) % filteredPuzzles.length;
+    const targetPuzzle = filteredPuzzles[prevFilteredIdx];
+    const targetIdx = KID_PUZZLES.findIndex((p) => p.id === targetPuzzle.id);
+    if (targetIdx !== -1) {
+      selectPuzzleByIdx(targetIdx);
+    }
   };
+
+  const getDifficultyFilterLabel = (diff: FilterDifficulty) => {
+    switch (diff) {
+      case 'All': return getTranslation(lang, 'filterAll');
+      case 'Easy': return getTranslation(lang, 'filterEasy');
+      case 'Medium': return getTranslation(lang, 'filterMedium');
+      case 'Tricky': return getTranslation(lang, 'filterTricky');
+      case 'Expert': return getTranslation(lang, 'filterExpert');
+      default: return diff;
+    }
+  };
+
+  const completedSet = new Set(userProfile.completedPuzzleIds || []);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 text-white p-2 sm:p-4 animate-fade-in">
@@ -174,12 +227,18 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
             className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 flex items-center gap-1 border border-slate-700 transition"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>{lang === 'vi' ? 'Trước' : 'Prev'}</span>
+            <span>{getTranslation(lang, 'prevPuzzle')}</span>
           </button>
 
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/20 text-purple-300 font-extrabold text-xs border border-purple-500/30">
             <PuzzleIcon className="w-4 h-4 text-purple-400" />
             <span>Level {currentIdx + 1} / {KID_PUZZLES.length}</span>
+            {completedSet.has(activePuzzle.id) && (
+              <span className="ml-1 px-1.5 py-0.5 rounded-md bg-emerald-500/30 text-emerald-300 text-[10px] font-black border border-emerald-400/40 flex items-center gap-0.5">
+                <Check className="w-3 h-3 text-emerald-400" />
+                <span>{getTranslation(lang, 'passedBadge')}</span>
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -191,14 +250,14 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
               className="px-3 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 text-xs font-extrabold flex items-center gap-1.5 border border-purple-500/40 transition"
             >
               <Grid className="w-3.5 h-3.5 text-purple-400" />
-              <span>{lang === 'vi' ? 'Chọn Level (105)' : 'Select Level (105)'}</span>
+              <span>{getTranslation(lang, 'selectLevelBtn')}</span>
             </button>
 
             <button
               onClick={handleNext}
               className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 flex items-center gap-1 border border-slate-700 transition"
             >
-              <span>{lang === 'vi' ? 'Sau' : 'Next'}</span>
+              <span>{getTranslation(lang, 'nextPuzzle')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -206,10 +265,10 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
 
         <div>
           <h2 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-amber-300 bg-clip-text text-transparent">
-            {activePuzzle.title}
+            {activePuzzleText.title}
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto font-medium mt-1">
-            {activePuzzle.description}
+            {activePuzzleText.description}
           </p>
         </div>
 
@@ -218,27 +277,14 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
           {(['All', 'Easy', 'Medium', 'Tricky', 'Expert'] as FilterDifficulty[]).map((diff) => (
             <button
               key={diff}
-              onClick={() => {
-                if (userProfile.soundEnabled) playSound.buttonClick();
-                setSelectedDifficulty(diff);
-              }}
+              onClick={() => handleSelectFilter(diff)}
               className={`px-3 py-1 rounded-xl text-xs font-bold transition border ${
                 selectedDifficulty === diff
                   ? 'bg-purple-500 text-white border-purple-400 shadow-md shadow-purple-500/20'
                   : 'bg-slate-800/80 text-slate-400 border-slate-700/60 hover:bg-slate-800 hover:text-slate-200'
               }`}
             >
-              {diff === 'All'
-                ? lang === 'vi'
-                  ? 'Tất cả (105)'
-                  : 'All (105)'
-                : diff === 'Easy'
-                ? '🟢 Easy (1-30)'
-                : diff === 'Medium'
-                ? '🟡 Medium (31-65)'
-                : diff === 'Tricky'
-                ? '🟠 Tricky (66-85)'
-                : '🔴 Expert (86-105)'}
+              {getDifficultyFilterLabel(diff)}
             </button>
           ))}
         </div>
@@ -261,7 +307,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
           <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-3xl space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
               <span className="px-2.5 py-1 rounded-xl bg-purple-500/20 text-purple-300 text-xs font-black border border-purple-500/30">
-                🎯 {lang === 'vi' ? `Nước ${currentPlayerStep} / ${totalPlayerSteps}` : `Step ${currentPlayerStep} of ${totalPlayerSteps}`}
+                🎯 {getTranslation(lang, 'stepProgress', { current: currentPlayerStep, total: totalPlayerSteps })}
               </span>
               <span className="px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 text-xs font-black border border-emerald-500/30">
                 {activePuzzle.difficulty} • +{activePuzzle.starsReward} ⭐
@@ -271,13 +317,13 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
             {/* Opponent Thinking Badge */}
             {isOpponentMoving && (
               <div className="bg-purple-500/10 border border-purple-500/30 p-2.5 rounded-2xl text-xs text-purple-300 text-center font-bold animate-pulse">
-                {lang === 'vi' ? '⚡ Đối thủ đang phản công...' : '⚡ Opponent responding...'}
+                {getTranslation(lang, 'opponentResponding')}
               </div>
             )}
 
             {/* Solved Banner */}
             {solved && (
-              <div className="bg-emerald-500/20 border-2 border-emerald-400 p-4 rounded-2xl text-center space-y-2 animate-bounce-slow">
+              <div className="bg-emerald-500/20 border-2 border-emerald-400 p-4 rounded-2xl text-center space-y-3 animate-bounce-slow">
                 <div className="flex items-center justify-center gap-2 text-emerald-300 font-extrabold text-lg">
                   <CheckCircle className="w-6 h-6 text-emerald-400" />
                   <span>{getTranslation(lang, 'puzzleSolvedTitle')}</span>
@@ -285,6 +331,13 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
                 <p className="text-xs text-emerald-200 font-semibold">
                   {getTranslation(lang, 'puzzleSolvedDesc')}
                 </p>
+                <button
+                  onClick={handleNext}
+                  className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
+                >
+                  <span>{getTranslation(lang, 'nextPuzzle')}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
             )}
 
@@ -307,9 +360,9 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
               <div className="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-2xl text-xs text-amber-200 space-y-1">
                 <div className="font-bold flex items-center gap-1.5 text-amber-300">
                   <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span>Duo Owl Hint:</span>
+                  <span>{getTranslation(lang, 'duoOwlHintTitle')}</span>
                 </div>
-                <p className="font-semibold">{activePuzzle.hint}</p>
+                <p className="font-semibold">{activePuzzleText.hint}</p>
               </div>
             )}
 
@@ -336,13 +389,15 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
                 <span>{getTranslation(lang, 'resetPuzzle')}</span>
               </button>
 
-              <button
-                onClick={handleNext}
-                className="w-full py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-extrabold text-xs shadow-lg shadow-purple-500/20 hover:scale-102 transition flex items-center justify-center gap-2"
-              >
-                <span>{getTranslation(lang, 'nextPuzzle')}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              {!solved && (
+                <button
+                  onClick={handleNext}
+                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-extrabold text-xs shadow-lg shadow-purple-500/20 hover:scale-102 transition flex items-center justify-center gap-2"
+                >
+                  <span>{getTranslation(lang, 'nextPuzzle')}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
 
               <button
                 onClick={() => {
@@ -352,7 +407,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
                 className="w-full py-2 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-bold transition flex items-center justify-center gap-2 mt-1"
               >
                 <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-                <span>{lang === 'vi' ? 'Báo lỗi Puzzle này' : 'Report Puzzle Error'}</span>
+                <span>{getTranslation(lang, 'reportPuzzleBtn')}</span>
               </button>
             </div>
           </div>
@@ -364,11 +419,16 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in">
           <div className="bg-slate-900 border border-purple-500/30 rounded-3xl p-6 max-w-2xl w-full max-h-[85vh] flex flex-col space-y-4 shadow-2xl text-white">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <PuzzleIcon className="w-5 h-5 text-purple-400" />
-                <h3 className="text-lg font-black bg-gradient-to-r from-purple-300 to-amber-300 bg-clip-text text-transparent">
-                  {lang === 'vi' ? 'Thư Viện 105 Puzzles Cờ Vua' : '105 Chess Puzzles Gallery'}
-                </h3>
+                <div>
+                  <h3 className="text-lg font-black bg-gradient-to-r from-purple-300 to-amber-300 bg-clip-text text-transparent">
+                    {getTranslation(lang, 'galleryModalTitle')}
+                  </h3>
+                  <p className="text-xs text-emerald-400 font-bold">
+                    {getTranslation(lang, 'completedCount', { count: completedSet.size, total: KID_PUZZLES.length })}
+                  </p>
+                </div>
               </div>
               <button
                 onClick={() => setIsLevelModalOpen(false)}
@@ -383,7 +443,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
               {(['All', 'Easy', 'Medium', 'Tricky', 'Expert'] as FilterDifficulty[]).map((diff) => (
                 <button
                   key={diff}
-                  onClick={() => setSelectedDifficulty(diff)}
+                  onClick={() => handleSelectFilter(diff)}
                   className={`px-3 py-1 rounded-xl text-xs font-bold transition border ${
                     selectedDifficulty === diff
                       ? 'bg-purple-500 text-white border-purple-400'
@@ -400,6 +460,8 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
               {filteredPuzzles.map((p) => {
                 const globalIdx = KID_PUZZLES.findIndex((item) => item.id === p.id);
                 const isCurrent = globalIdx === currentIdx;
+                const isPassed = completedSet.has(p.id);
+                const itemTranslated = getPuzzleTranslation(p, lang);
 
                 let difficultyBadgeColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
                 if (p.difficulty === 'Medium') difficultyBadgeColor = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
@@ -410,23 +472,32 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
                   <button
                     key={p.id}
                     onClick={() => selectPuzzleByIdx(globalIdx)}
-                    className={`p-3 rounded-2xl text-left border transition flex flex-col justify-between space-y-2 ${
+                    className={`p-3 rounded-2xl text-left border transition flex flex-col justify-between space-y-2 relative group ${
                       isCurrent
                         ? 'bg-purple-600/30 border-purple-400 ring-2 ring-purple-400/50'
+                        : isPassed
+                        ? 'bg-emerald-950/20 hover:bg-slate-800 border-emerald-500/40 hover:border-emerald-400'
                         : 'bg-slate-800/60 hover:bg-slate-800 border-slate-700/70 hover:border-purple-500/50'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black text-slate-200">
-                        Lvl {globalIdx + 1}
+                        {getTranslation(lang, 'levelLabel')} {globalIdx + 1}
                       </span>
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-lg border ${difficultyBadgeColor}`}>
-                        {p.difficulty}
-                      </span>
+                      {isPassed ? (
+                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded-lg border bg-emerald-500/30 text-emerald-300 border-emerald-400/40 flex items-center gap-0.5">
+                          <Check className="w-3 h-3 text-emerald-400" />
+                          <span>{getTranslation(lang, 'passedBadge')}</span>
+                        </span>
+                      ) : (
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-lg border ${difficultyBadgeColor}`}>
+                          {p.difficulty}
+                        </span>
+                      )}
                     </div>
 
                     <p className="text-xs font-bold text-slate-300 line-clamp-1">
-                      {p.title.replace(/^Level \d+:\s*/, '')}
+                      {itemTranslated.title.replace(/^(Level|Màn)\s*\d+:\s*/, '')}
                     </p>
 
                     <div className="flex items-center justify-between text-[10px] text-amber-400 font-bold pt-1 border-t border-slate-700/40">
@@ -435,7 +506,9 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
                         +{p.starsReward}
                       </span>
                       <span className="text-slate-400">
-                        {p.solution.length > 0 ? `${Math.ceil(p.solution.length / 2)} moves` : '1 move'}
+                        {p.solution.length > 0 
+                          ? getTranslation(lang, 'movesPlural', { count: Math.ceil(p.solution.length / 2) })
+                          : getTranslation(lang, 'moveSingular')}
                       </span>
                     </div>
                   </button>
@@ -445,6 +518,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
           </div>
         </div>
       )}
+
       {/* Report Error Modal */}
       {isReportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in">
@@ -453,7 +527,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-rose-400" />
                 <h3 className="text-base font-black text-rose-300">
-                  {lang === 'vi' ? `Báo lỗi Level ${currentIdx + 1}` : `Report Error - Level ${currentIdx + 1}`}
+                  {getTranslation(lang, 'reportModalTitle', { level: currentIdx + 1 })}
                 </h3>
               </div>
               <button
@@ -467,28 +541,28 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
             <form onSubmit={handleReportSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-extrabold text-slate-300 mb-2">
-                  {lang === 'vi' ? 'Loại sự cố:' : 'Issue Type:'}
+                  {getTranslation(lang, 'reportIssueType')}
                 </label>
                 <select
                   value={reportReason}
                   onChange={(e) => setReportReason(e.target.value)}
                   className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 font-semibold focus:outline-none focus:border-rose-400"
                 >
-                  <option value="wrong_position">{lang === 'vi' ? 'Thế cờ bị lỗi / Trùng quân' : 'Board position error / Duplicate piece'}</option>
-                  <option value="wrong_solution">{lang === 'vi' ? 'Lời giải chưa chính xác' : 'Incorrect solution'}</option>
-                  <option value="confusing_hint">{lang === 'vi' ? 'Gợi ý không rõ ràng' : 'Confusing or wrong hint'}</option>
-                  <option value="other">{lang === 'vi' ? 'Lỗi khác' : 'Other issue'}</option>
+                  <option value="wrong_position">{getTranslation(lang, 'reportOptPosition')}</option>
+                  <option value="wrong_solution">{getTranslation(lang, 'reportOptSolution')}</option>
+                  <option value="confusing_hint">{getTranslation(lang, 'reportOptHint')}</option>
+                  <option value="other">{getTranslation(lang, 'reportOptOther')}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-xs font-extrabold text-slate-300 mb-2">
-                  {lang === 'vi' ? 'Mô tả chi tiết (không bắt buộc):' : 'Additional Details (optional):'}
+                  {getTranslation(lang, 'reportDetailsLabel')}
                 </label>
                 <textarea
                   value={reportNote}
                   onChange={(e) => setReportNote(e.target.value)}
-                  placeholder={lang === 'vi' ? 'Nhập chi tiết ví dụ: Mã đã đứng trên f7 rồi...' : 'Describe what went wrong...'}
+                  placeholder={getTranslation(lang, 'reportPlaceholder')}
                   rows={3}
                   className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-rose-400 resize-none"
                 />
@@ -500,14 +574,14 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
                   onClick={() => setIsReportModalOpen(false)}
                   className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition"
                 >
-                  {lang === 'vi' ? 'Hủy' : 'Cancel'}
+                  {getTranslation(lang, 'reportCancel')}
                 </button>
                 <button
                   type="submit"
                   className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 text-white font-extrabold text-xs shadow-lg shadow-rose-500/20 hover:scale-102 transition flex items-center justify-center gap-1.5"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>{lang === 'vi' ? 'Gửi Báo Lỗi' : 'Send Report'}</span>
+                  <span>{getTranslation(lang, 'reportSubmit')}</span>
                 </button>
               </div>
             </form>
@@ -517,4 +591,3 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
     </div>
   );
 };
-

@@ -26,6 +26,8 @@ export const DEFAULT_PROFILE: UserProfile = {
   losses: 0,
   draws: 0,
   puzzlesSolved: 0,
+  completedPuzzleIds: [],
+  lastPuzzleIndex: 0,
   unlockedBadges: ['first_move'],
   preferredTheme: 'duolingo',
   pieceStyle: 'duo_3d',

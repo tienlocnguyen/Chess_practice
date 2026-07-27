@@ -46,14 +46,29 @@ export default function App() {
     saveUserProfile(updated);
   };
 
-  const handleSolvePuzzle = (rewardStars: number) => {
+  const handleSolvePuzzle = (puzzleId: string, rewardStars: number, nextLevelIdx?: number) => {
     const updated = addStarsAndUnlockBadges(profile, rewardStars, 'puzzle_star');
-    const finalP = {
+    const completedSet = new Set<string>(profile.completedPuzzleIds || []);
+    completedSet.add(puzzleId);
+
+    const finalP: UserProfile = {
       ...updated,
-      puzzlesSolved: (updated.puzzlesSolved || 0) + 1,
+      puzzlesSolved: completedSet.size,
+      completedPuzzleIds: Array.from(completedSet),
+      lastPuzzleIndex: typeof nextLevelIdx === 'number' ? nextLevelIdx : (profile.lastPuzzleIndex || 0),
     };
     setProfile(finalP);
     saveUserProfile(finalP);
+  };
+
+  const handleSelectLevelIdx = (idx: number) => {
+    if (profile.lastPuzzleIndex === idx) return;
+    const updated: UserProfile = {
+      ...profile,
+      lastPuzzleIndex: idx,
+    };
+    setProfile(updated);
+    saveUserProfile(updated);
   };
 
   const handleUpdateStats = (
@@ -138,6 +153,7 @@ export default function App() {
             theme={profile.preferredTheme}
             userProfile={profile}
             onSolvePuzzle={handleSolvePuzzle}
+            onSelectLevelIdx={handleSelectLevelIdx}
           />
         )}
 
