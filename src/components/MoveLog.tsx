@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Copy, Check, Hash, Code } from 'lucide-react';
+import { Language } from '../utils/i18n';
 
 interface MoveLogProps {
   game: Chess;
   onUndoMove: () => void;
   canUndo: boolean;
+  language?: Language;
 }
 
-export const MoveLog: React.FC<MoveLogProps> = ({ game, onUndoMove, canUndo }) => {
+export const MoveLog: React.FC<MoveLogProps> = ({ game, onUndoMove, canUndo, language = 'vi' }) => {
+  const isVi = language === 'vi';
   const [copiedPgn, setCopiedPgn] = useState(false);
   const [copiedFen, setCopiedFen] = useState(false);
 
@@ -42,7 +45,7 @@ export const MoveLog: React.FC<MoveLogProps> = ({ game, onUndoMove, canUndo }) =
       <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
         <div className="flex items-center gap-2 text-xs font-bold text-amber-300 uppercase tracking-wider">
           <Hash className="w-4 h-4 text-amber-400" />
-          <span>Move History ({history.length})</span>
+          <span>{isVi ? `Lịch Sử Nước Đi (${history.length})` : `Move History (${history.length})`}</span>
         </div>
 
         <button
@@ -51,7 +54,7 @@ export const MoveLog: React.FC<MoveLogProps> = ({ game, onUndoMove, canUndo }) =
           className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 disabled:opacity-40 text-xs font-bold flex items-center gap-1.5 transition"
         >
           <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
-          <span>Take Back</span>
+          <span>{isVi ? 'Đi Lại' : 'Take Back'}</span>
         </button>
       </div>
 
@@ -59,7 +62,7 @@ export const MoveLog: React.FC<MoveLogProps> = ({ game, onUndoMove, canUndo }) =
       <div className="flex-1 overflow-y-auto max-h-56 pr-1 space-y-1 scrollbar-thin">
         {movePairs.length === 0 ? (
           <div className="text-center py-8 text-xs text-slate-500 italic">
-            No moves played yet. Make your first pawn move!
+            {isVi ? 'Chưa có nước đi nào. Hãy bắt đầu nước đi đầu tiên!' : 'No moves played yet. Make your first pawn move!'}
           </div>
         ) : (
           movePairs.map((pair) => (
@@ -82,7 +85,7 @@ export const MoveLog: React.FC<MoveLogProps> = ({ game, onUndoMove, canUndo }) =
           className="flex-1 py-1.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-300 flex items-center justify-center gap-1 border border-slate-700/60 transition"
         >
           {copiedPgn ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Code className="w-3.5 h-3.5 text-amber-400" />}
-          <span>{copiedPgn ? 'PGN Copied' : 'Copy PGN'}</span>
+          <span>{copiedPgn ? (isVi ? 'Đã Sao Chép PGN' : 'PGN Copied') : (isVi ? 'Sao Chép PGN' : 'Copy PGN')}</span>
         </button>
 
         <button
@@ -90,7 +93,7 @@ export const MoveLog: React.FC<MoveLogProps> = ({ game, onUndoMove, canUndo }) =
           className="flex-1 py-1.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-300 flex items-center justify-center gap-1 border border-slate-700/60 transition"
         >
           {copiedFen ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-cyan-400" />}
-          <span>{copiedFen ? 'FEN Copied' : 'Copy FEN'}</span>
+          <span>{copiedFen ? (isVi ? 'Đã Sao Chép FEN' : 'FEN Copied') : (isVi ? 'Sao Chép FEN' : 'Copy FEN')}</span>
         </button>
       </div>
     </div>

@@ -173,7 +173,7 @@ export const ChessGameView: React.FC<ChessGameViewProps> = ({
     if (hint && userProfile.soundEnabled) playSound.hint();
   };
 
-  const rawCoachTip = getCoachTip(game, lastMove || undefined);
+  const rawCoachTip = getCoachTip(game, lastMove || undefined, lang);
   let coachMessage = rawCoachTip;
   if (game.isCheck()) {
     coachMessage = getTranslation(lang, 'coachCheck');
@@ -310,7 +310,7 @@ export const ChessGameView: React.FC<ChessGameViewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Board & Captured Pieces */}
         <div className="lg:col-span-7 space-y-4">
-          <CapturedPieces game={game} />
+          <CapturedPieces game={game} language={lang} />
 
           <ChessBoard
             game={game}
@@ -353,6 +353,7 @@ export const ChessGameView: React.FC<ChessGameViewProps> = ({
               game={game}
               onUndoMove={handleUndo}
               canUndo={game.history().length > 0 && !isAiThinking}
+              language={lang}
             />
           </div>
         </div>

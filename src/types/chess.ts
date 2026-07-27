@@ -31,7 +31,7 @@ export interface ThemeConfig {
   textAccent: string;
 }
 
-export type PieceStyle = 'staunton' | 'duo_3d' | 'neon_cyber' | 'wood_carved' | 'flat_minimal';
+export type PieceStyle = 'staunton' | 'duo_3d' | 'cute_emoji' | 'neon_cyber' | 'wood_carved' | 'flat_minimal';
 
 export interface UserProfile {
   name: string;
@@ -76,7 +76,7 @@ export interface Puzzle {
   solution: string[]; // sequence of SAN moves (e.g. ["Qxf7#"])
   hint: string;
   starsReward: number;
-  difficulty: 'Easy' | 'Medium' | 'Tricky';
+  difficulty: 'Easy' | 'Medium' | 'Tricky' | 'Expert';
 }
 
 export interface Badge {

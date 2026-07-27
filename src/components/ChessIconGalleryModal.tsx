@@ -28,13 +28,23 @@ export interface PieceSetOption {
 export const PIECE_SET_OPTIONS: PieceSetOption[] = [
   {
     id: 'duo_3d',
-    nameEn: 'Duo Emerald 3D Gamified 🦉',
-    nameVi: 'Cú Duo 3D Sống Động 🦉',
-    badge: 'Popular & Cute',
-    descriptionEn: 'Vibrant 3D emoji icons with smooth glass highlights & expressive character badges.',
-    descriptionVi: 'Biểu tượng 3D sống động kiểu Duolingo, màu sắc rực rỡ và dễ thương cho trẻ em.',
+    nameEn: 'Duo Emerald 3D Badges 🦉',
+    nameVi: 'Huy Hiệu Duo 3D Nổi Bật 🦉',
+    badge: 'Popular & Modern',
+    descriptionEn: 'Vibrant 3D badges with glass shine and crystal-clear vector horse knight and king icons.',
+    descriptionVi: 'Huy hiệu 3D nổi bật với lớp bóng thủy tinh, hình ảnh Ngựa (Mã) và Vua rõ nét tương phản cao.',
     accentBg: 'from-emerald-900/60 via-lime-950/40 to-slate-900 border-emerald-400/50',
     tagColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+  },
+  {
+    id: 'cute_emoji',
+    nameEn: 'Cute Kingdom Animals & Royals 🐴👑',
+    nameVi: 'Bộ Linh Vật Ngựa & Vương Quốc 🐴👑',
+    badge: 'Kid Favorite',
+    descriptionEn: 'Adorable character icons with Horse (Knight) 🐴, Unicorn 🦄, Castle 🏰, and Royal Crown 👑.',
+    descriptionVi: 'Bộ linh vật đáng yêu dành cho trẻ em với Ngựa (Mã) 🐴, Kỳ Lân 🦄, Lâu Đài 🏰 và Vương Miện 👑.',
+    accentBg: 'from-amber-900/60 via-pink-950/40 to-slate-900 border-amber-400/50',
+    tagColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
   },
   {
     id: 'staunton',

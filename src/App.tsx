@@ -4,7 +4,6 @@ import { loadUserProfile, saveUserProfile, addStarsAndUnlockBadges } from './uti
 import { BOARD_THEMES } from './utils/themes';
 import { Navbar } from './components/Navbar';
 import { UserProfileModal } from './components/UserProfileModal';
-import { GithubDeployGuideModal } from './components/GithubDeployGuideModal';
 import { ChessIconGalleryModal } from './components/ChessIconGalleryModal';
 import { ChessGameView } from './components/ChessGameView';
 import { PuzzleMode } from './components/PuzzleMode';
@@ -14,7 +13,6 @@ export default function App() {
   const [profile, setProfile] = useState<UserProfile>(() => loadUserProfile());
   const [currentMode, setCurrentMode] = useState<GameMode>('training');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isDeployGuideOpen, setIsDeployGuideOpen] = useState(false);
   const [isIconGalleryOpen, setIsIconGalleryOpen] = useState(false);
 
   // Sync profile changes to localStorage
@@ -107,7 +105,6 @@ export default function App() {
         onSelectMode={(mode) => setCurrentMode(mode)}
         userProfile={profile}
         onOpenProfile={() => setIsProfileOpen(true)}
-        onOpenDeployModal={() => setIsDeployGuideOpen(true)}
         onOpenIconGallery={() => setIsIconGalleryOpen(true)}
         currentTheme={profile.preferredTheme}
         onChangeTheme={handleChangeTheme}
@@ -149,14 +146,8 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-slate-800/80 bg-slate-950/80 py-4 text-center text-xs text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>♟️ Kid Chess Academy • Automatic GitHub Pages Deployment Pipeline</span>
-          <button
-            onClick={() => setIsDeployGuideOpen(true)}
-            className="text-emerald-400 hover:underline font-extrabold"
-          >
-            🚀 {profile.language === 'vi' ? 'Xem Hướng Dẫn Tự Động Deploy GitHub Actions' : 'View GitHub Actions Deploy Guide'}
-          </button>
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-center">
+          <span>♟️ Kid Chess Academy</span>
         </div>
       </footer>
 
@@ -166,11 +157,6 @@ export default function App() {
         onClose={() => setIsProfileOpen(false)}
         profile={profile}
         onSaveProfile={handleSaveProfile}
-      />
-
-      <GithubDeployGuideModal
-        isOpen={isDeployGuideOpen}
-        onClose={() => setIsDeployGuideOpen(false)}
       />
 
       <ChessIconGalleryModal

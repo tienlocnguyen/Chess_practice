@@ -1,9 +1,11 @@
 import React from 'react';
 import { Chess } from 'chess.js';
 import { getMaterialDifference } from '../utils/chessAi';
+import { Language } from '../utils/i18n';
 
 interface CapturedPiecesProps {
   game: Chess;
+  language?: Language;
 }
 
 const PIECE_ICONS: Record<string, string> = {
@@ -14,7 +16,8 @@ const PIECE_ICONS: Record<string, string> = {
   q: '♛',
 };
 
-export const CapturedPieces: React.FC<CapturedPiecesProps> = ({ game }) => {
+export const CapturedPieces: React.FC<CapturedPiecesProps> = ({ game, language = 'vi' }) => {
+  const isVi = language === 'vi';
   const history = game.history({ verbose: true });
 
   const whiteCaptured: string[] = []; // pieces black lost
@@ -36,10 +39,10 @@ export const CapturedPieces: React.FC<CapturedPiecesProps> = ({ game }) => {
     <div className="flex items-center justify-between gap-3 bg-slate-900/80 p-3 rounded-2xl border border-slate-800 text-xs w-full">
       {/* Captured White Pieces (Taken by Black) */}
       <div className="flex items-center gap-1.5 flex-1 overflow-x-auto scrollbar-none">
-        <span className="text-[10px] font-bold text-slate-400 shrink-0">Captured:</span>
+        <span className="text-[10px] font-bold text-slate-400 shrink-0">{isVi ? 'Đã ăn:' : 'Captured:'}</span>
         <div className="flex items-center gap-0.5 text-slate-200 text-base font-serif">
           {whiteCaptured.length === 0 ? (
-            <span className="text-slate-600 text-xs italic">None</span>
+            <span className="text-slate-600 text-xs italic">{isVi ? 'Chưa có' : 'None'}</span>
           ) : (
             whiteCaptured.map((p, idx) => <span key={idx}>{PIECE_ICONS[p] || p}</span>)
           )}
@@ -60,12 +63,12 @@ export const CapturedPieces: React.FC<CapturedPiecesProps> = ({ game }) => {
         )}
         <div className="flex items-center gap-0.5 text-slate-400 text-base font-serif">
           {blackCaptured.length === 0 ? (
-            <span className="text-slate-600 text-xs italic">None</span>
+            <span className="text-slate-600 text-xs italic">{isVi ? 'Chưa có' : 'None'}</span>
           ) : (
             blackCaptured.map((p, idx) => <span key={idx}>{PIECE_ICONS[p] || p}</span>)
           )}
         </div>
-        <span className="text-[10px] font-bold text-slate-400 shrink-0">Captured:</span>
+        <span className="text-[10px] font-bold text-slate-400 shrink-0">{isVi ? 'Đã ăn:' : 'Captured:'}</span>
       </div>
     </div>
   );

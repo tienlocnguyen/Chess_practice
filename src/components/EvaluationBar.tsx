@@ -56,13 +56,13 @@ export const EvaluationBar: React.FC<EvaluationBarProps> = ({ game, language }) 
     <div className="flex flex-col items-center gap-1.5 w-full">
       <div className="flex items-center justify-between w-full text-[11px] font-black tracking-wider px-1">
         <span className="text-slate-100 flex items-center gap-1">
-          ⚪ White {evalNum > 0 ? `+${evalNum.toFixed(1)}` : ''}
+          ⚪ {language === 'vi' ? 'Trắng' : 'White'} {evalNum > 0 ? `+${evalNum.toFixed(1)}` : ''}
         </span>
         <span className="text-emerald-400 font-extrabold text-[10px]">
           {evalNum === 0 ? '0.0' : evalNum > 0 ? `+${evalNum.toFixed(1)}` : `-${Math.abs(evalNum).toFixed(1)}`}
         </span>
         <span className="text-slate-400 flex items-center gap-1">
-          ⚫ Black {evalNum < 0 ? `+${Math.abs(evalNum).toFixed(1)}` : ''}
+          ⚫ {language === 'vi' ? 'Đen' : 'Black'} {evalNum < 0 ? `+${Math.abs(evalNum).toFixed(1)}` : ''}
         </span>
       </div>
 

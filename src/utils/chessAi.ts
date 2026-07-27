@@ -1,5 +1,6 @@
 import { Chess, Square, Move } from 'chess.js';
 import { AiLevel, AiPersonality } from '../types/chess';
+import { Language } from './i18n';
 
 export const AI_PERSONALITIES: Record<AiLevel, AiPersonality> = {
   bunny: {
@@ -254,50 +255,80 @@ export function getBestMoveHint(gameInstance: Chess): Move | null {
 }
 
 // Generate kid-friendly speech bubble coach messages
-export function getCoachTip(game: Chess, lastMove?: Move): string {
+export function getCoachTip(game: Chess, lastMove?: Move, lang: Language = 'vi'): string {
+  const isVi = lang === 'vi';
+
   if (game.isCheckmate()) {
-    return '🎉 CHECKMATE! What an unbelievable victory! You played like a Grandmaster!';
+    return isVi
+      ? '🎉 CHIẾU HẾT! Chiến thắng không tưởng! Bạn đã thi đấu như một Đại Kiện Tướng!'
+      : '🎉 CHECKMATE! What an unbelievable victory! You played like a Grandmaster!';
   }
   if (game.isCheck()) {
-    return '⚡ Warning! The King is in CHECK! Protect your King immediately!';
+    return isVi
+      ? '⚡ Cảnh báo! Vua của bạn đang BỊ CHIẾU! Hãy bảo vệ Vua ngay lập tức!'
+      : '⚡ Warning! The King is in CHECK! Protect your King immediately!';
   }
   if (game.isStalemate()) {
-    return '🤝 Stalemate! It is a draw because the King has no legal moves left!';
+    return isVi
+      ? '🤝 Hòa Cờ! Ván đấu kết thúc hòa vì Vua không còn nước đi hợp lệ nào!'
+      : '🤝 Stalemate! It is a draw because the King has no legal moves left!';
   }
   if (game.isDraw()) {
-    return '🤝 Game ended in a draw! Great defensive play from both sides!';
+    return isVi
+      ? '🤝 Ván đấu kết thúc hòa! Cả hai bên đều thi đấu phòng thủ rất xuất sắc!'
+      : '🤝 Game ended in a draw! Great defensive play from both sides!';
   }
 
   if (lastMove?.captured) {
-    const pieceNames: Record<string, string> = {
+    const pieceNamesEn: Record<string, string> = {
       q: 'Queen 👑',
       r: 'Rook 🏰',
       b: 'Bishop 🧙',
       n: 'Knight 🐴',
       p: 'Pawn ♟️'
     };
-    const name = pieceNames[lastMove.captured] || 'piece';
-    return `💥 Great capture! A ${name} was taken off the board!`;
+    const pieceNamesVi: Record<string, string> = {
+      q: 'Hậu 👑',
+      r: 'Xe 🏰',
+      b: 'Tượng 🧙',
+      n: 'Mã 🐴',
+      p: 'Tốt ♟️'
+    };
+    const name = isVi ? (pieceNamesVi[lastMove.captured] || 'quân cờ') : (pieceNamesEn[lastMove.captured] || 'piece');
+    return isVi
+      ? `💥 Nước ăn quân tuyệt vời! Đã loại 1 quân ${name} của đối phương khỏi bàn cờ!`
+      : `💥 Great capture! A ${name} was taken off the board!`;
   }
 
-  const turn = game.turn() === 'w' ? 'White' : 'Black';
+  const turnEn = game.turn() === 'w' ? 'White' : 'Black';
+  const turnVi = game.turn() === 'w' ? 'Bên Trắng' : 'Bên Đen';
+  const turn = isVi ? turnVi : turnEn;
+
   const moves = game.moves({ verbose: true });
 
   const checks = moves.filter(m => m.san.includes('+'));
   if (checks.length > 0) {
-    return `💡 Tip for ${turn}: You can deliver a Check! Look for a move that threatens the enemy King!`;
+    return isVi
+      ? `💡 Mẹo cho ${turn}: Bạn có thể Chiếu Vua! Hãy tìm nước đi đe dọa Vua đối phương!`
+      : `💡 Tip for ${turn}: You can deliver a Check! Look for a move that threatens the enemy King!`;
   }
 
   const captures = moves.filter(m => m.captured);
   if (captures.length > 0) {
-    return `💡 Tip for ${turn}: You have an opportunity to capture an undefended piece!`;
+    return isVi
+      ? `💡 Mẹo cho ${turn}: Bạn đang có cơ hội ăn 1 quân cờ sơ hở của đối thủ!`
+      : `💡 Tip for ${turn}: You have an opportunity to capture an undefended piece!`;
   }
 
   if (game.history().length < 6) {
-    return `🚀 Opening Tip: Control the center of the board (e4/d4/e5/d5) and develop your Knights and Bishops!`;
+    return isVi
+      ? `🚀 Mẹo Khai Cuộc: Hãy kiểm soát khu vực trung tâm bàn cờ (e4/d4/e5/d5) và phát triển các quân Mã và Tượng!`
+      : `🚀 Opening Tip: Control the center of the board (e4/d4/e5/d5) and develop your Knights and Bishops!`;
   }
 
-  return `⭐ Keep your pieces guarded and watch for open paths for your Rooks and Queen!`;
+  return isVi
+    ? `⭐ Hãy bảo vệ cẩn thận các quân cờ của bạn và chú ý tạo đường thoáng cho Xe và Hậu!`
+    : `⭐ Keep your pieces guarded and watch for open paths for your Rooks and Queen!`;
 }
 
 export function getMaterialDifference(game: Chess): { whiteScore: number; blackScore: number; diff: number } {

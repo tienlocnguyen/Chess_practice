@@ -5,14 +5,13 @@ import { Language, getTranslation } from '../utils/i18n';
 import { playSound } from '../utils/sound';
 import { ChessPiece } from './ChessPiece';
 import { PIECE_SET_OPTIONS } from './ChessIconGalleryModal';
-import { Bot, Users, BookOpen, Puzzle, Sparkles, GitBranch, Settings, Flame, Star, Volume2, VolumeX, Globe, Palette, ChevronDown } from 'lucide-react';
+import { Bot, Users, BookOpen, Puzzle, Sparkles, Settings, Flame, Star, Volume2, VolumeX, Globe, Palette, ChevronDown } from 'lucide-react';
 
 interface NavbarProps {
   currentMode: GameMode;
   onSelectMode: (mode: GameMode) => void;
   userProfile: UserProfile;
   onOpenProfile: () => void;
-  onOpenDeployModal: () => void;
   onOpenIconGallery: () => void;
   currentTheme: BoardTheme;
   onChangeTheme: (theme: BoardTheme) => void;
@@ -26,7 +25,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectMode,
   userProfile,
   onOpenProfile,
-  onOpenDeployModal,
   onOpenIconGallery,
   currentTheme,
   onChangeTheme,
@@ -200,18 +198,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Settings className="w-4 h-4 text-emerald-400" />
             <span>{lang === 'vi' ? '⚙️ Cài Đặt' : '⚙️ Settings'}</span>
-          </button>
-
-          <button
-            onClick={() => {
-              playSound.buttonClick();
-              onOpenDeployModal();
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all border border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800 text-emerald-400`}
-            title="GitHub Pages Automatic CI/CD Pipeline Setup"
-          >
-            <GitBranch className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden sm:inline">{getTranslation(lang, 'deploy')}</span>
           </button>
         </nav>
 
