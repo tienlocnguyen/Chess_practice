@@ -1,39 +1,50 @@
 import React from 'react';
-import { Sparkles, HelpCircle, AlertTriangle, Lightbulb } from 'lucide-react';
+import { Sparkles, Lightbulb } from 'lucide-react';
+import { Language, getTranslation } from '../utils/i18n';
+import { playSound } from '../utils/sound';
 
 interface CoachBubbleProps {
   message: string;
   onRequestHint?: () => void;
   disabled?: boolean;
+  language?: Language;
 }
 
-export const CoachBubble: React.FC<CoachBubbleProps> = ({ message, onRequestHint, disabled }) => {
+export const CoachBubble: React.FC<CoachBubbleProps> = ({
+  message,
+  onRequestHint,
+  disabled,
+  language = 'vi',
+}) => {
   return (
-    <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950 p-3.5 sm:p-4 rounded-2xl border border-amber-500/30 shadow-xl flex items-start gap-3 relative overflow-hidden">
-      {/* Mascot Avatar */}
-      <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-400 flex items-center justify-center text-slate-950 text-2xl font-black shadow-lg shrink-0 animate-bounce-slow">
-        ♟️
+    <div className="bg-gradient-to-r from-slate-900 via-emerald-950/40 to-slate-900 p-4 rounded-3xl border border-emerald-500/40 shadow-2xl flex items-start gap-3.5 relative overflow-hidden">
+      {/* Duo Mascot Avatar */}
+      <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-400 via-lime-400 to-amber-300 flex items-center justify-center text-slate-950 text-2xl font-black shadow-lg shadow-emerald-500/20 shrink-0 border border-white/40 animate-bounce-slow">
+        🦉
       </div>
 
       {/* Speech Content */}
       <div className="flex-1">
         <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Chessie the Kid Coach</span>
+          <div className="flex items-center gap-1.5 text-xs font-black text-emerald-300">
+            <Sparkles className="w-4 h-4 text-emerald-400" />
+            <span>{getTranslation(language, 'coachTitle')}</span>
           </div>
           {onRequestHint && (
             <button
-              onClick={onRequestHint}
+              onClick={() => {
+                playSound.buttonClick();
+                onRequestHint();
+              }}
               disabled={disabled}
-              className="px-2.5 py-1 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 hover:bg-amber-500 hover:text-slate-950 text-xs font-black transition flex items-center gap-1 shadow-sm disabled:opacity-50"
+              className="px-3 py-1 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 hover:bg-amber-500 hover:text-slate-950 text-xs font-black transition flex items-center gap-1 shadow-sm disabled:opacity-50"
             >
               <Lightbulb className="w-3.5 h-3.5" />
-              <span>Get Hint</span>
+              <span>{getTranslation(language, 'getHint')}</span>
             </button>
           )}
         </div>
-        <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium">
+        <p className="text-xs sm:text-sm text-slate-100 leading-relaxed font-semibold">
           {message}
         </p>
       </div>

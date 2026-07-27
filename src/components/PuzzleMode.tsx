@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Chess, Square } from 'chess.js';
-import { Puzzle, BoardTheme, UserProfile } from '../types/chess';
+import { BoardTheme, UserProfile } from '../types/chess';
 import { KID_PUZZLES } from '../utils/puzzles';
 import { ChessBoard } from './ChessBoard';
 import { playSound } from '../utils/sound';
+import { getTranslation } from '../utils/i18n';
 import confetti from 'canvas-confetti';
-import { Puzzle as PuzzleIcon, Sparkles, CheckCircle, HelpCircle, Trophy, RefreshCw, ArrowRight } from 'lucide-react';
+import { Puzzle as PuzzleIcon, Sparkles, CheckCircle, HelpCircle, RefreshCw, ArrowRight } from 'lucide-react';
 
 interface PuzzleModeProps {
   theme: BoardTheme;
@@ -22,6 +23,8 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
   const [solved, setSolved] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  const lang = userProfile.language || 'vi';
+
   const handleMove = (from: Square, to: Square, promotion?: string) => {
     if (solved) return;
 
@@ -31,25 +34,25 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
 
       const newGame = new Chess(game.fen());
       setGame(newGame);
-      playSound.move();
 
-      // Check if player's move matches solution or delivers checkmate/check as expected
       if (newGame.isCheckmate() || move.san === activePuzzle.solution[0]) {
         setSolved(true);
         setErrorMsg('');
-        playSound.victory();
-        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+        if (userProfile.soundEnabled) playSound.duoSuccess();
+        confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
         onSolvePuzzle(activePuzzle.starsReward);
       } else {
-        setErrorMsg('Not quite! Try another move or click Get Hint.');
-        playSound.defeat();
+        setErrorMsg(getTranslation(lang, 'puzzleWrong'));
+        if (userProfile.soundEnabled) playSound.duoError();
       }
     } catch {
-      setErrorMsg('Invalid move!');
+      setErrorMsg(getTranslation(lang, 'puzzleWrong'));
+      if (userProfile.soundEnabled) playSound.duoError();
     }
   };
 
   const handleReset = () => {
+    if (userProfile.soundEnabled) playSound.buttonClick();
     setGame(new Chess(activePuzzle.fen));
     setSolved(false);
     setShowHint(false);
@@ -57,6 +60,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
   };
 
   const handleNext = () => {
+    if (userProfile.soundEnabled) playSound.buttonClick();
     const nextIdx = (currentIdx + 1) % KID_PUZZLES.length;
     setCurrentIdx(nextIdx);
     setGame(new Chess(KID_PUZZLES[nextIdx].fen));
@@ -66,18 +70,18 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 text-white p-4 animate-fade-in">
+    <div className="max-w-4xl mx-auto space-y-6 text-white p-2 sm:p-4 animate-fade-in">
       {/* Header */}
-      <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl text-center space-y-2 shadow-xl">
+      <div className="bg-slate-900/90 border border-purple-500/30 p-6 rounded-3xl text-center space-y-2 shadow-2xl">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/20 text-purple-300 font-extrabold text-xs border border-purple-500/30 mb-1">
           <PuzzleIcon className="w-4 h-4 text-purple-400" />
-          <span>Kid Tactical Puzzles ({currentIdx + 1} / {KID_PUZZLES.length})</span>
+          <span>{getTranslation(lang, 'puzzleTitle')} ({currentIdx + 1} / {KID_PUZZLES.length})</span>
         </div>
-        <h2 className="text-3xl font-extrabold bg-gradient-to-r from-purple-300 via-pink-300 to-amber-300 bg-clip-text text-transparent">
+        <h2 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-amber-300 bg-clip-text text-transparent">
           {activePuzzle.title}
         </h2>
-        <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto">
-          {activePuzzle.description}
+        <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto font-medium">
+          {getTranslation(lang, 'puzzleSubtitle')}
         </p>
       </div>
 
@@ -87,6 +91,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
           <ChessBoard
             game={game}
             theme={theme}
+            pieceStyle={userProfile.pieceStyle}
             onMove={handleMove}
             disabled={solved}
           />
@@ -97,8 +102,8 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
           <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-3xl space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Difficulty</span>
-              <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black border border-amber-500/30">
-                {activePuzzle.difficulty} • +{activePuzzle.starsReward} Stars
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-black border border-emerald-500/30">
+                {activePuzzle.difficulty} • +{activePuzzle.starsReward} Stars (+10 XP)
               </span>
             </div>
 
@@ -107,15 +112,17 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
               <div className="bg-emerald-500/20 border-2 border-emerald-400 p-4 rounded-2xl text-center space-y-2 animate-bounce-slow">
                 <div className="flex items-center justify-center gap-2 text-emerald-300 font-extrabold text-lg">
                   <CheckCircle className="w-6 h-6 text-emerald-400" />
-                  <span>PUZZLE SOLVED!</span>
+                  <span>{getTranslation(lang, 'puzzleSolvedTitle')}</span>
                 </div>
-                <p className="text-xs text-emerald-200">You earned +{activePuzzle.starsReward} Stars! Amazing tactical sight!</p>
+                <p className="text-xs text-emerald-200 font-semibold">
+                  {getTranslation(lang, 'puzzleSolvedDesc')}
+                </p>
               </div>
             )}
 
             {/* Error Banner */}
             {errorMsg && !solved && (
-              <div className="bg-rose-500/20 border border-rose-500/40 p-3 rounded-2xl text-xs text-rose-300 text-center font-medium">
+              <div className="bg-rose-500/20 border border-rose-500/40 p-3 rounded-2xl text-xs text-rose-300 text-center font-bold">
                 {errorMsg}
               </div>
             )}
@@ -125,9 +132,9 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
               <div className="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-2xl text-xs text-amber-200 space-y-1">
                 <div className="font-bold flex items-center gap-1.5 text-amber-300">
                   <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span>Coach Hint:</span>
+                  <span>Duo Owl Hint:</span>
                 </div>
-                <p>{activePuzzle.hint}</p>
+                <p className="font-semibold">{activePuzzle.hint}</p>
               </div>
             )}
 
@@ -135,11 +142,14 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
             <div className="space-y-2 pt-2">
               {!showHint && !solved && (
                 <button
-                  onClick={() => setShowHint(true)}
+                  onClick={() => {
+                    if (userProfile.soundEnabled) playSound.buttonClick();
+                    setShowHint(true);
+                  }}
                   className="w-full py-2.5 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-300 hover:bg-amber-500 hover:text-slate-950 text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-md"
                 >
                   <HelpCircle className="w-4 h-4" />
-                  <span>Show Hint</span>
+                  <span>{getTranslation(lang, 'showHint')}</span>
                 </button>
               )}
 
@@ -148,14 +158,14 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
                 className="w-full py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition flex items-center justify-center gap-2"
               >
                 <RefreshCw className="w-4 h-4 text-amber-400" />
-                <span>Reset Puzzle</span>
+                <span>{getTranslation(lang, 'resetPuzzle')}</span>
               </button>
 
               <button
                 onClick={handleNext}
                 className="w-full py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-extrabold text-xs shadow-lg shadow-purple-500/20 hover:scale-102 transition flex items-center justify-center gap-2"
               >
-                <span>Next Puzzle</span>
+                <span>{getTranslation(lang, 'nextPuzzle')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

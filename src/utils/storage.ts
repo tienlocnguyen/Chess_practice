@@ -14,9 +14,12 @@ export const ALL_BADGES: Badge[] = [
 ];
 
 export const DEFAULT_PROFILE: UserProfile = {
-  name: 'Alex the Chess Knight',
+  name: 'Hiệp Sĩ Cờ Vua',
   avatar: '🦊',
   stars: 5,
+  xp: 50,
+  streakDays: 3,
+  language: 'vi',
   gamesPlayed: 0,
   winsVsAi: 0,
   winsVsPlayer: 0,
@@ -24,7 +27,8 @@ export const DEFAULT_PROFILE: UserProfile = {
   draws: 0,
   puzzlesSolved: 0,
   unlockedBadges: ['first_move'],
-  preferredTheme: 'wood',
+  preferredTheme: 'duolingo',
+  pieceStyle: 'duo_3d',
   soundEnabled: true,
   coachTipsEnabled: true,
   showLegalMoves: true,
@@ -61,6 +65,7 @@ export function addStarsAndUnlockBadges(
   newBadgeId?: string
 ): UserProfile {
   const newStars = current.stars + addStars;
+  const newXp = (current.xp || 0) + addStars * 10;
   const newBadges = new Set(current.unlockedBadges);
 
   if (newBadgeId) {
@@ -74,6 +79,8 @@ export function addStarsAndUnlockBadges(
   const updated: UserProfile = {
     ...current,
     stars: newStars,
+    xp: newXp,
+    streakDays: Math.max(current.streakDays || 1, 1),
     unlockedBadges: Array.from(newBadges),
   };
 

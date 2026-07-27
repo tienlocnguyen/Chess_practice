@@ -65,5 +65,18 @@ export const BOARD_THEMES: Record<BoardTheme, ThemeConfig> = {
     cardBg: 'bg-slate-900/80 border-cyan-500/30',
     borderColor: 'border-cyan-400/40',
     textAccent: 'text-cyan-400',
+  },
+  duolingo: {
+    id: 'duolingo',
+    name: 'Duolingo Emerald 🦉',
+    lightSquare: 'bg-[#e2f7d8]',
+    darkSquare: 'bg-[#58cc02]',
+    highlightSelected: 'ring-4 ring-amber-300 bg-amber-200/80',
+    highlightMove: 'bg-amber-400/60',
+    highlightCheck: 'bg-rose-500/80 animate-pulse',
+    bgGradient: 'from-emerald-950/40 via-green-900/30 to-slate-950',
+    cardBg: 'bg-emerald-950/30 border-emerald-500/40',
+    borderColor: 'border-emerald-500/50',
+    textAccent: 'text-emerald-400',
   }
 };

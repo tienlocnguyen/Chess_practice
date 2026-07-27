@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Chess, Square, Move } from 'chess.js';
-import { BoardTheme } from '../types/chess';
+import { BoardTheme, PieceStyle } from '../types/chess';
 import { BOARD_THEMES } from '../utils/themes';
 import { ChessPiece } from './ChessPiece';
-import { RotateCw, Crown, Shield, Zap } from 'lucide-react';
+import { playSound } from '../utils/sound';
+import { RotateCw, Crown } from 'lucide-react';
 
 interface ChessBoardProps {
   game: Chess;
   theme: BoardTheme;
+  pieceStyle?: PieceStyle;
   orientation?: 'w' | 'b';
   onMove: (from: Square, to: Square, promotion?: string) => void;
   showLegalMoves?: boolean;
@@ -20,6 +22,7 @@ interface ChessBoardProps {
 export const ChessBoard: React.FC<ChessBoardProps> = ({
   game,
   theme,
+  pieceStyle = 'duo_3d',
   orientation = 'w',
   onMove,
   showLegalMoves = true,
@@ -31,7 +34,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [pendingPromotion, setPendingPromotion] = useState<{ from: Square; to: Square } | null>(null);
 
-  const themeConfig = BOARD_THEMES[theme] || BOARD_THEMES.wood;
+  const themeConfig = BOARD_THEMES[theme] || BOARD_THEMES.duolingo;
 
   // Get legal moves for currently selected square
   const legalDestinations = selectedSquare
@@ -64,6 +67,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
           (selectedPiece?.color === 'b' && square.endsWith('1'));
 
         if (isPawn && isPromotionRank) {
+          playSound.buttonClick();
           setPendingPromotion({ from: selectedSquare, to: square });
           return;
         }
@@ -76,6 +80,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
 
     // Select piece if it belongs to current player turn
     if (pieceOnSquare && pieceOnSquare.color === turn) {
+      playSound.buttonClick();
       setSelectedSquare(square);
     } else {
       setSelectedSquare(null);
@@ -160,7 +165,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
                   {/* Chess Piece */}
                   {piece && (
                     <div className="w-[85%] h-[85%] z-10 relative">
-                      <ChessPiece type={piece.type} color={piece.color} />
+                      <ChessPiece type={piece.type} color={piece.color} pieceStyle={pieceStyle} />
                     </div>
                   )}
 

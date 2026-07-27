@@ -1,3 +1,5 @@
+import { Language } from '../utils/i18n';
+
 export type GameMode = 'training' | 'dual' | 'puzzles' | 'rules' | 'cicd';
 
 export type AiLevel = 'bunny' | 'fox' | 'owl' | 'dragon';
@@ -13,7 +15,7 @@ export interface AiPersonality {
   color: string;
 }
 
-export type BoardTheme = 'wood' | 'candy' | 'space' | 'forest' | 'neon';
+export type BoardTheme = 'wood' | 'candy' | 'space' | 'forest' | 'neon' | 'duolingo';
 
 export interface ThemeConfig {
   id: BoardTheme;
@@ -29,10 +31,16 @@ export interface ThemeConfig {
   textAccent: string;
 }
 
+export type PieceStyle = 'staunton' | 'duo_3d' | 'neon_cyber' | 'wood_carved' | 'flat_minimal';
+
 export interface UserProfile {
   name: string;
   avatar: string;
   stars: number;
+  xp: number;
+  streakDays: number;
+  language: Language;
+  pieceStyle?: PieceStyle;
   gamesPlayed: number;
   winsVsAi: number;
   winsVsPlayer: number;

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { GameMode, BoardTheme, UserProfile } from './types/chess';
 import { loadUserProfile, saveUserProfile, addStarsAndUnlockBadges } from './utils/storage';
 import { BOARD_THEMES } from './utils/themes';
 import { Navbar } from './components/Navbar';
 import { UserProfileModal } from './components/UserProfileModal';
 import { GithubDeployGuideModal } from './components/GithubDeployGuideModal';
+import { ChessIconGalleryModal } from './components/ChessIconGalleryModal';
 import { ChessGameView } from './components/ChessGameView';
 import { PuzzleMode } from './components/PuzzleMode';
 import { KidRulesGuide } from './components/KidRulesGuide';
@@ -14,9 +15,16 @@ export default function App() {
   const [currentMode, setCurrentMode] = useState<GameMode>('training');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDeployGuideOpen, setIsDeployGuideOpen] = useState(false);
+  const [isIconGalleryOpen, setIsIconGalleryOpen] = useState(false);
 
   // Sync profile changes to localStorage
   const handleSaveProfile = (updated: UserProfile) => {
+    setProfile(updated);
+    saveUserProfile(updated);
+  };
+
+  const handleSelectPieceStyle = (pieceStyle: PieceStyle) => {
+    const updated = { ...profile, pieceStyle };
     setProfile(updated);
     saveUserProfile(updated);
   };
@@ -27,12 +35,27 @@ export default function App() {
     saveUserProfile(updated);
   };
 
+  const handleToggleLanguage = () => {
+    const newLang = profile.language === 'vi' ? 'en' : 'vi';
+    const updated = { ...profile, language: newLang };
+    setProfile(updated);
+    saveUserProfile(updated);
+  };
+
+  const handleToggleSound = () => {
+    const updated = { ...profile, soundEnabled: !profile.soundEnabled };
+    setProfile(updated);
+    saveUserProfile(updated);
+  };
+
   const handleSolvePuzzle = (rewardStars: number) => {
     const updated = addStarsAndUnlockBadges(profile, rewardStars, 'puzzle_star');
-    setProfile({
+    const finalP = {
       ...updated,
-      puzzlesSolved: updated.puzzlesSolved + 1,
-    });
+      puzzlesSolved: (updated.puzzlesSolved || 0) + 1,
+    };
+    setProfile(finalP);
+    saveUserProfile(finalP);
   };
 
   const handleUpdateStats = (
@@ -41,10 +64,10 @@ export default function App() {
     starsEarned: number
   ) => {
     let addBadge: string | undefined;
-    let userWinsAi = profile.winsVsAi;
-    let userWins2P = profile.winsVsPlayer;
-    let losses = profile.losses;
-    let draws = profile.draws;
+    let userWinsAi = profile.winsVsAi || 0;
+    let userWins2P = profile.winsVsPlayer || 0;
+    let losses = profile.losses || 0;
+    let draws = profile.draws || 0;
 
     if (winner === 'user') {
       if (mode === 'training') {
@@ -63,7 +86,7 @@ export default function App() {
     const updated = addStarsAndUnlockBadges(profile, starsEarned, addBadge);
     const finalProfile: UserProfile = {
       ...updated,
-      gamesPlayed: profile.gamesPlayed + 1,
+      gamesPlayed: (profile.gamesPlayed || 0) + 1,
       winsVsAi: userWinsAi,
       winsVsPlayer: userWins2P,
       losses,
@@ -74,7 +97,7 @@ export default function App() {
     saveUserProfile(finalProfile);
   };
 
-  const activeThemeConfig = BOARD_THEMES[profile.preferredTheme] || BOARD_THEMES.wood;
+  const activeThemeConfig = BOARD_THEMES[profile.preferredTheme] || BOARD_THEMES.duolingo;
 
   return (
     <div className={`min-screen bg-gradient-to-b ${activeThemeConfig.bgGradient} bg-slate-950 text-slate-100 flex flex-col font-sans transition-colors duration-300 min-h-screen`}>
@@ -85,8 +108,12 @@ export default function App() {
         userProfile={profile}
         onOpenProfile={() => setIsProfileOpen(true)}
         onOpenDeployModal={() => setIsDeployGuideOpen(true)}
+        onOpenIconGallery={() => setIsIconGalleryOpen(true)}
         currentTheme={profile.preferredTheme}
         onChangeTheme={handleChangeTheme}
+        onChangePieceStyle={handleSelectPieceStyle}
+        onToggleLanguage={handleToggleLanguage}
+        onToggleSound={handleToggleSound}
       />
 
       {/* Main App Content View */}
@@ -117,7 +144,7 @@ export default function App() {
           />
         )}
 
-        {currentMode === 'rules' && <KidRulesGuide />}
+        {currentMode === 'rules' && <KidRulesGuide language={profile.language} />}
       </main>
 
       {/* Footer */}
@@ -126,9 +153,9 @@ export default function App() {
           <span>♟️ Kid Chess Academy • Automatic GitHub Pages Deployment Pipeline</span>
           <button
             onClick={() => setIsDeployGuideOpen(true)}
-            className="text-emerald-400 hover:underline font-semibold"
+            className="text-emerald-400 hover:underline font-extrabold"
           >
-            🚀 View GitHub Actions Deploy Guide
+            🚀 {profile.language === 'vi' ? 'Xem Hướng Dẫn Tự Động Deploy GitHub Actions' : 'View GitHub Actions Deploy Guide'}
           </button>
         </div>
       </footer>
@@ -144,6 +171,13 @@ export default function App() {
       <GithubDeployGuideModal
         isOpen={isDeployGuideOpen}
         onClose={() => setIsDeployGuideOpen(false)}
+      />
+
+      <ChessIconGalleryModal
+        isOpen={isIconGalleryOpen}
+        onClose={() => setIsIconGalleryOpen(false)}
+        userProfile={profile}
+        onSelectPieceStyle={handleSelectPieceStyle}
       />
     </div>
   );

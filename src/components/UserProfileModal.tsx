@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { UserProfile, BoardTheme } from '../types/chess';
+import { UserProfile, BoardTheme, PieceStyle } from '../types/chess';
 import { ALL_BADGES } from '../utils/storage';
 import { BOARD_THEMES } from '../utils/themes';
-import { X, Trophy, Award, Sparkles, Volume2, VolumeX, Eye, EyeOff, Save, RotateCcw } from 'lucide-react';
+import { ChessPiece } from './ChessPiece';
+import { PIECE_SET_OPTIONS } from './ChessIconGalleryModal';
+import { X, Trophy, Award, Sparkles, Volume2, VolumeX, Eye, EyeOff, Save, RotateCcw, Settings, Globe, User, Palette } from 'lucide-react';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -12,7 +14,7 @@ interface UserProfileModalProps {
 }
 
 const AVATAR_OPTIONS = [
-  '🦊', '🐰', '🦉', '🐲', '🦁', '🦄', '🧙‍♂️', '👑', '👸', '🚀', '🤖', '🐼', '🐯', '🐼', '🐶', '🦄'
+  '🦊', '🐰', '🦉', '🐲', '🦁', '🦄', '🧙‍♂️', '👑', '👸', '🚀', '🤖', '🐼', '🐯', '🐶'
 ];
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
@@ -24,6 +26,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const [name, setName] = useState(profile.name);
   const [avatar, setAvatar] = useState(profile.avatar);
   const [theme, setTheme] = useState<BoardTheme>(profile.preferredTheme);
+  const [pieceStyle, setPieceStyle] = useState<PieceStyle>(profile.pieceStyle || 'duo_3d');
+  const [language, setLanguage] = useState(profile.language || 'vi');
   const [sound, setSound] = useState(profile.soundEnabled);
   const [coachTips, setCoachTips] = useState(profile.coachTipsEnabled);
   const [showLegal, setShowLegal] = useState(profile.showLegalMoves);
@@ -37,6 +41,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       name: name.trim() || 'Young Grandmaster',
       avatar,
       preferredTheme: theme,
+      pieceStyle,
+      language,
       soundEnabled: sound,
       coachTipsEnabled: coachTips,
       showLegalMoves: showLegal,
@@ -46,60 +52,72 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     onClose();
   };
 
+  const isVi = language === 'vi';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto text-white shadow-2xl p-6 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-md animate-fade-in">
+      <div className="bg-slate-900 border border-emerald-500/40 rounded-3xl w-full max-w-2xl max-h-[92vh] overflow-y-auto text-white shadow-2xl p-5 sm:p-7 relative flex flex-col">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition"
+          className="absolute top-5 right-5 p-2.5 rounded-2xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition border border-slate-700"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Modal Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 text-2xl font-black shadow-lg">
+        <div className="flex items-center gap-3.5 mb-6">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-400 via-amber-400 to-lime-300 flex items-center justify-center text-slate-950 text-2xl font-black shadow-lg">
             {avatar}
           </div>
           <div>
-            <h2 className="text-2xl font-extrabold text-amber-300">Kid Player Profile</h2>
-            <p className="text-xs text-slate-400">Customize your name, avatar, themes and view achievements</p>
+            <h2 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-emerald-300 via-amber-200 to-white bg-clip-text text-transparent flex items-center gap-2">
+              <Settings className="w-5 h-5 text-emerald-400 inline-block" />
+              <span>{isVi ? 'Cài Đặt Game & Hồ Sơ Player' : 'Game Settings & Player Profile'}</span>
+            </h2>
+            <p className="text-xs text-slate-400 font-medium">
+              {isVi ? 'Tùy chỉnh tên người chơi, ngôn ngữ, thiết kế quân cờ và giao diện' : 'Customize player name, language, chess icon designs & themes'}
+            </p>
           </div>
         </div>
 
-        {/* Settings Form Grid */}
+        {/* Settings Content Form */}
         <div className="space-y-6">
-          {/* Name & Avatar Selector */}
-          <div className="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/60 space-y-4">
+          {/* Section 1: Player Identity (Name & Avatar) */}
+          <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80 space-y-4">
+            <h3 className="text-xs font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
+              <User className="w-4 h-4 text-amber-400" />
+              <span>{isVi ? '1. Tên Người Chơi & Đại Diện' : '1. Player Name & Avatar'}</span>
+            </h3>
+
             <div>
-              <label className="block text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">
-                Your Player Name (Saved to Local Storage)
+              <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                {isVi ? 'Tên Người Chơi (Lưu Tự Động)' : 'Player Name (Stored to local profile)'}
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 maxLength={24}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-semibold text-white focus:outline-none focus:border-amber-400 transition"
-                placeholder="Enter player name..."
+                className="w-full bg-slate-950 border border-emerald-500/40 rounded-xl px-4 py-2.5 text-sm font-bold text-emerald-300 focus:outline-none focus:border-emerald-400 transition"
+                placeholder={isVi ? 'Nhập tên của bạn...' : 'Enter player name...'}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">
-                Choose Your Avatar Icon
+              <label className="block text-xs font-bold text-slate-300 mb-2">
+                {isVi ? 'Biểu Tượng Avatar' : 'Avatar Icon'}
               </label>
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
                 {AVATAR_OPTIONS.map((av) => (
                   <button
                     key={av}
                     type="button"
                     onClick={() => setAvatar(av)}
-                    className={`w-11 h-11 rounded-2xl text-2xl flex items-center justify-center transition-transform shrink-0 ${
+                    className={`w-10 h-10 rounded-2xl text-xl flex items-center justify-center transition-transform shrink-0 ${
                       avatar === av
-                        ? 'bg-amber-500 scale-110 shadow-lg shadow-amber-500/30 border-2 border-white'
-                        : 'bg-slate-900 hover:bg-slate-700 border border-slate-700'
+                        ? 'bg-gradient-to-tr from-emerald-500 to-lime-400 text-slate-950 scale-110 shadow-lg border-2 border-white'
+                        : 'bg-slate-950 hover:bg-slate-800 border border-slate-700'
                     }`}
                   >
                     {av}
@@ -109,73 +127,113 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
           </div>
 
-          {/* Stats Summary Box */}
-          <div className="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/60">
-            <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-amber-400" />
-              <span>Career Stats & Trophies</span>
+          {/* Section 2: Language Preference */}
+          <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80 space-y-3">
+            <h3 className="text-xs font-black text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+              <Globe className="w-4 h-4 text-emerald-400" />
+              <span>{isVi ? '2. Ngôn Ngữ Hiển Thị (Language)' : '2. Language Setting'}</span>
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-              <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-700/50">
-                <div className="text-xl font-black text-amber-300">⭐ {profile.stars}</div>
-                <div className="text-[11px] font-medium text-slate-400 mt-0.5">Total Stars</div>
-              </div>
-              <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-700/50">
-                <div className="text-xl font-black text-emerald-400">{profile.winsVsAi}</div>
-                <div className="text-[11px] font-medium text-slate-400 mt-0.5">AI Wins</div>
-              </div>
-              <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-700/50">
-                <div className="text-xl font-black text-cyan-400">{profile.winsVsPlayer}</div>
-                <div className="text-[11px] font-medium text-slate-400 mt-0.5">2P Wins</div>
-              </div>
-              <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-700/50">
-                <div className="text-xl font-black text-purple-400">{profile.puzzlesSolved}</div>
-                <div className="text-[11px] font-medium text-slate-400 mt-0.5">Puzzles Cleared</div>
-              </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setLanguage('vi')}
+                className={`p-3 rounded-2xl border font-black text-xs flex items-center justify-between transition ${
+                  language === 'vi'
+                    ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-md'
+                    : 'bg-slate-950 border-slate-700 text-slate-400 hover:bg-slate-800'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-base">🇻🇳</span>
+                  <span>Tiếng Việt</span>
+                </span>
+                {language === 'vi' && <span className="text-emerald-400 font-extrabold">✓</span>}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLanguage('en')}
+                className={`p-3 rounded-2xl border font-black text-xs flex items-center justify-between transition ${
+                  language === 'en'
+                    ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-md'
+                    : 'bg-slate-950 border-slate-700 text-slate-400 hover:bg-slate-800'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-base">🇬🇧</span>
+                  <span>English</span>
+                </span>
+                {language === 'en' && <span className="text-emerald-400 font-extrabold">✓</span>}
+              </button>
             </div>
           </div>
 
-          {/* Badges Collection */}
-          <div className="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/60">
-            <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <Award className="w-4 h-4 text-amber-400" />
-              <span>Unlocked Star Badges ({profile.unlockedBadges.length} / {ALL_BADGES.length})</span>
+          {/* Section 3: Chess Piece Icon Designs */}
+          <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80 space-y-3">
+            <h3 className="text-xs font-black text-amber-300 uppercase tracking-wider flex items-center gap-2">
+              <Palette className="w-4 h-4 text-amber-300" />
+              <span>{isVi ? '3. Bộ Mẫu Quân Cờ Vua (Chess Piece Icons)' : '3. Chess Piece Icon Collection'}</span>
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
-              {ALL_BADGES.map((b) => {
-                const unlocked = profile.unlockedBadges.includes(b.id);
+
+            <div className="space-y-2">
+              {PIECE_SET_OPTIONS.map((opt) => {
+                const isSelected = pieceStyle === opt.id;
                 return (
-                  <div
-                    key={b.id}
-                    className={`p-2.5 rounded-xl border flex items-center gap-3 transition ${
-                      unlocked
-                        ? 'bg-amber-500/10 border-amber-500/40 text-white'
-                        : 'bg-slate-900/50 border-slate-800 opacity-50 grayscale'
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setPieceStyle(opt.id)}
+                    className={`w-full p-3 rounded-2xl border text-left transition flex items-center justify-between gap-3 ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-emerald-950/80 via-slate-900 to-emerald-950/40 border-emerald-400 ring-2 ring-emerald-500/30'
+                        : 'bg-slate-950 border-slate-800 hover:border-slate-700'
                     }`}
                   >
-                    <div className="text-2xl">{b.icon}</div>
-                    <div>
-                      <div className="text-xs font-bold flex items-center gap-1.5">
-                        <span>{b.title}</span>
-                        {unlocked && <span className="text-[10px] text-amber-400 font-extrabold">✓ Unlocked</span>}
+                    <div className="flex items-center gap-3">
+                      {/* Live Piece Previews */}
+                      <div className="flex items-center gap-1 bg-slate-900 p-1.5 rounded-xl border border-slate-800 shrink-0">
+                        <div className="w-6 h-6">
+                          <ChessPiece type="k" color="w" pieceStyle={opt.id} />
+                        </div>
+                        <div className="w-6 h-6">
+                          <ChessPiece type="q" color="b" pieceStyle={opt.id} />
+                        </div>
+                        <div className="w-6 h-6">
+                          <ChessPiece type="n" color="w" pieceStyle={opt.id} />
+                        </div>
                       </div>
-                      <div className="text-[10px] text-slate-400">{b.description}</div>
+
+                      <div>
+                        <div className="text-xs font-extrabold text-white flex items-center gap-2">
+                          <span>{isVi ? opt.nameVi : opt.nameEn}</span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-medium line-clamp-1">
+                          {isVi ? opt.descriptionVi : opt.descriptionEn}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+
+                    {isSelected && (
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-500 text-slate-950 font-black text-[10px] shrink-0">
+                        {isVi ? 'Đang Chọn' : 'Selected'}
+                      </span>
+                    )}
+                  </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Preferences & Theme Toggle */}
-          <div className="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/60 space-y-3">
-            <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>Board Theme & Sound Settings</span>
+          {/* Section 4: Board Themes & Audio Preferences */}
+          <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80 space-y-3">
+            <h3 className="text-xs font-black text-cyan-300 uppercase tracking-wider flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-cyan-300" />
+              <span>{isVi ? '4. Giao Diện Bàn Cờ & Âm Thanh' : '4. Board Themes & Sound'}</span>
             </h3>
 
-            {/* Board Theme Selector */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+            {/* Board Theme Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {Object.values(BOARD_THEMES).map((th) => (
                 <button
                   key={th.id}
@@ -183,87 +241,61 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   onClick={() => setTheme(th.id)}
                   className={`p-2.5 rounded-xl border text-left text-xs font-bold flex items-center justify-between transition ${
                     theme === th.id
-                      ? 'bg-amber-500/20 border-amber-400 text-amber-300'
-                      : 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800'
+                      ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
+                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
                   }`}
                 >
                   <span>{th.name}</span>
-                  {theme === th.id && <span className="text-amber-400 font-black">✓</span>}
+                  {theme === th.id && <span className="text-cyan-400 font-black">✓</span>}
                 </button>
               ))}
             </div>
 
-            {/* Sound & Hints Toggles */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <label className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-700/60 cursor-pointer">
+            {/* Sound & Helpers */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
                 <span className="text-xs font-semibold flex items-center gap-2">
                   {sound ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4 text-slate-500" />}
-                  Sound Effects
+                  {isVi ? 'Âm Thanh Nước Đi' : 'Sound Effects'}
                 </span>
                 <input
                   type="checkbox"
                   checked={sound}
                   onChange={(e) => setSound(e.target.checked)}
-                  className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+                  className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
                 />
               </label>
 
-              <label className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-700/60 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
                 <span className="text-xs font-semibold flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-amber-400" />
-                  Coach Tip Speech Bubbles
+                  {isVi ? 'Bóng Lời Nhắn Thầy Cú' : 'Coach Tips Speech'}
                 </span>
                 <input
                   type="checkbox"
                   checked={coachTips}
                   onChange={(e) => setCoachTips(e.target.checked)}
-                  className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
-                />
-              </label>
-
-              <label className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-700/60 cursor-pointer">
-                <span className="text-xs font-semibold flex items-center gap-2">
-                  {showLegal ? <Eye className="w-4 h-4 text-cyan-400" /> : <EyeOff className="w-4 h-4 text-slate-500" />}
-                  Highlight Legal Move Dots
-                </span>
-                <input
-                  type="checkbox"
-                  checked={showLegal}
-                  onChange={(e) => setShowLegal(e.target.checked)}
-                  className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
-                />
-              </label>
-
-              <label className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-700/60 cursor-pointer">
-                <span className="text-xs font-semibold flex items-center gap-2">
-                  <RotateCcw className="w-4 h-4 text-indigo-400" />
-                  Auto-Flip Board in 2P Mode
-                </span>
-                <input
-                  type="checkbox"
-                  checked={flipBoard}
-                  onChange={(e) => setFlipBoard(e.target.checked)}
-                  className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+                  className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
                 />
               </label>
             </div>
           </div>
         </div>
 
-        {/* Modal Footer Actions */}
-        <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
+        {/* Footer Actions */}
+        <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-end gap-3 shrink-0">
           <button
             onClick={onClose}
             className="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700 transition"
           >
-            Cancel
+            {isVi ? 'Hủy' : 'Cancel'}
           </button>
           <button
             onClick={handleSave}
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 hover:scale-105 transition flex items-center gap-2"
+            className="px-7 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-lime-500 to-amber-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 hover:scale-105 transition flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
-            <span>Save Settings</span>
+            <span>{isVi ? 'Lưu Cài Đặt Hồ Sơ' : 'Save Settings'}</span>
           </button>
         </div>
       </div>
