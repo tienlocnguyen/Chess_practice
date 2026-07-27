@@ -1,0 +1,6 @@
+{
+  "name": "Kid Chess Academy",
+  "description": "Interactive chess app for kids with AI training engine, 2-player mode, kid move guidance, local stats, and automatic GitHub Pages deployment workflow.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
