@@ -158,7 +158,9 @@ export const PuzzleInspectorModal: React.FC<PuzzleInspectorModalProps> = ({
                           <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
                             #{idx + 1}
                           </span>
-                          <h4 className="text-xs font-black text-slate-200 truncate">{p.title}</h4>
+                          <h4 className="text-xs font-black text-slate-200 truncate">
+                            {lang === 'vi' ? (p.titleVi || p.title) : p.title}
+                          </h4>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-md border ${badgeColor}`}>
@@ -199,7 +201,7 @@ export const PuzzleInspectorModal: React.FC<PuzzleInspectorModalProps> = ({
                 <div className="flex items-start justify-between gap-2 border-b border-slate-800 pb-3">
                   <div>
                     <h3 className="text-sm font-black text-amber-300 flex items-center gap-2">
-                      {currentPuzzle.title}
+                      {lang === 'vi' ? (currentPuzzle.titleVi || currentPuzzle.title) : currentPuzzle.title}
                       {currentPuzzle.lichessUrl && (
                         <a
                           href={currentPuzzle.lichessUrl}
@@ -212,7 +214,9 @@ export const PuzzleInspectorModal: React.FC<PuzzleInspectorModalProps> = ({
                         </a>
                       )}
                     </h3>
-                    <p className="text-xs text-slate-400 mt-1">{currentPuzzle.description}</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {lang === 'vi' ? (currentPuzzle.descriptionVi || currentPuzzle.description) : currentPuzzle.description}
+                    </p>
                   </div>
 
                   <button

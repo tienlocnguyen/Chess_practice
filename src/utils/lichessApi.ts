@@ -1,6 +1,7 @@
 import { Chess } from 'chess.js';
 import { Puzzle } from '../types/chess';
 import { validatePuzzle } from './puzzleValidator';
+import { translatePieceName, translateThemesToVi } from './translator';
 
 export interface LichessRawPuzzleResponse {
   game: {
@@ -76,20 +77,30 @@ export function convertLichessToPuzzle(data: LichessRawPuzzleResponse): Puzzle |
     }
 
     const turnColor = new Chess(initialFen).turn() === 'w' ? 'White' : 'Black';
+    const turnColorVi = new Chess(initialFen).turn() === 'w' ? 'Trắng' : 'Đen';
     const playerMoves = getPlayerMovesCount(sanSolution.length);
     const diff = movesToDifficulty(sanSolution.length);
 
     const title = `Lichess #${rawP.id} (${playerMoves} ${playerMoves === 1 ? 'Move' : 'Moves'} to Win - ${turnColor})`;
+    const titleVi = `Lichess #${rawP.id} (${playerMoves} Nước Thắng - Phe ${turnColorVi})`;
+
     const description = `Find the ${playerMoves}-move winning line for ${turnColor}! Rating: ${rawP.rating}. Themes: ${rawP.themes.slice(0, 3).join(', ')}.`;
+    const descriptionVi = `Tìm chuỗi ${playerMoves} nước đi chiến thắng cho phe ${turnColorVi}! Rating: ${rawP.rating}. Chủ đề: ${translateThemesToVi(rawP.themes.slice(0, 3))}.`;
+
+    const pieceVi = translatePieceName(sanSolution[0]);
     const hint = `Look for tactical threats for ${turnColor}. First move involves ${sanSolution[0] ? sanSolution[0].slice(0, 1).toUpperCase() : 'a piece'}.`;
+    const hintVi = `Gợi ý: Tìm đòn thế tấn công cho phe ${turnColorVi}. Nước đi đầu tiên sử dụng quân ${pieceVi}.`;
 
     const puzzle: Puzzle = {
       id: `lichess_${rawP.id}`,
       title,
+      titleVi,
       description,
+      descriptionVi,
       fen: initialFen,
       solution: sanSolution,
       hint,
+      hintVi,
       starsReward: movesToStars(sanSolution.length, rawP.rating),
       difficulty: diff,
       lichessId: rawP.id,
@@ -128,10 +139,13 @@ export const FALLBACK_LICHESS_PUZZLES: Puzzle[] = [
   {
     id: 'lichess_00008',
     title: 'Lichess #00008 (3 Moves to Win - White)',
+    titleVi: 'Lichess #00008 (3 Nước Thắng - Phe Trắng)',
     description: 'Master defense and counterattack! Capture enemy Rook on e7, block check with Knight on c1, then capture White Queen on c1.',
+    descriptionVi: 'Phòng thủ và phản công đỉnh cao! Ăn Xe đối phương ở e7, chắn nước chiếu bằng Mã c1, sau đó ăn Hậu Đen c1.',
     fen: 'r6k/pp2r2p/4Rp1Q/3p4/8/1N1P2b1/PqP3PP/7K w - - 0 1',
     solution: ['Rxe7', 'Qb1+', 'Nc1', 'Qxc1+', 'Qxc1'],
     hint: 'Rxe7 first! Then block check with Nc1, and finish with Qxc1!',
+    hintVi: 'Xe ăn e7 trước! Sau đó chắn chiếu bằng Mã c1, và kết thúc bằng Hậu ăn c1!',
     starsReward: 12,
     difficulty: 'Hard',
     lichessId: '00008',
@@ -143,10 +157,13 @@ export const FALLBACK_LICHESS_PUZZLES: Puzzle[] = [
   {
     id: 'lichess_0003Y',
     title: 'Lichess #0003Y (1 Move to Win - White)',
+    titleVi: 'Lichess #0003Y (1 Nước Thắng - Phe Trắng)',
     description: 'Exploit Black back-rank weakness with instant Rook mate on d8.',
+    descriptionVi: 'Khai thác điểm yếu hàng cuối của Đen bằng đòn chiếu Xe d8 ngay lập tức.',
     fen: '6k1/5ppp/8/8/8/8/1r3PPP/3R2K1 w - - 0 1',
     solution: ['Rd8#'],
     hint: 'Slide Rook to d8 for back-rank checkmate!',
+    hintVi: 'Phi Xe lên d8 để chiếu hết hàng cuối!',
     starsReward: 3,
     difficulty: 'Easy',
     lichessId: '0003Y',
@@ -158,10 +175,13 @@ export const FALLBACK_LICHESS_PUZZLES: Puzzle[] = [
   {
     id: 'lichess_00021',
     title: 'Lichess #00021 (2 Moves to Win - White)',
+    titleVi: 'Lichess #00021 (2 Nước Thắng - Phe Trắng)',
     description: 'Tactical kingside castling activating white Rook for rapid piece development.',
+    descriptionVi: 'Nhập thành chiến thuật cánh Vua đưa Vua vào nơi an toàn và kích hoạt Xe nhanh chóng.',
     fen: 'r1bqk2r/pppp1ppp/2n5/4p3/1b2P3/2NP1N2/PPP1EPPP/R2QK2R w KQkq - 0 1',
     solution: ['O-O', 'Bxc3', 'bxc3'],
     hint: 'Castle your King (O-O) to gain instant safety and Rook activation!',
+    hintVi: 'Nhập thành cánh Vua (O-O) để bảo vệ Vua và kích hoạt Xe!',
     starsReward: 6,
     difficulty: 'Medium',
     lichessId: '00021',
@@ -173,10 +193,13 @@ export const FALLBACK_LICHESS_PUZZLES: Puzzle[] = [
   {
     id: 'lichess_0001D',
     title: 'Lichess #0001D (2 Moves to Win - White)',
+    titleVi: 'Lichess #0001D (2 Nước Thắng - Phe Trắng)',
     description: 'Endgame precision: march King to b2 and eliminate black passed pawn on c2!',
+    descriptionVi: 'Tàn cuộc chính xác: di chuyển Vua lên b2 và tiêu diệt Tốt thông nguy hiểm của Đen ở c2!',
     fen: '8/8/8/4k3/8/2K5/2p5/2B5 w - - 0 1',
     solution: ['Kb2', 'Kd4', 'Kxc2'],
     hint: 'Kb2 first, then capture on c2 with King!',
+    hintVi: 'Vua lên b2 trước, sau đó Vua ăn Tốt c2!',
     starsReward: 6,
     difficulty: 'Medium',
     lichessId: '0001D',

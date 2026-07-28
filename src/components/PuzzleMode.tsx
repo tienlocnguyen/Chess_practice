@@ -4,6 +4,7 @@ import { BoardTheme, Puzzle, UserProfile } from '../types/chess';
 import { KID_PUZZLES } from '../utils/puzzles';
 import { fetchLichessFeaturedPuzzles, fetchLichessDailyPuzzle } from '../utils/lichessApi';
 import { validatePuzzle } from '../utils/puzzleValidator';
+import { translatePuzzleToVietnamese } from '../utils/translator';
 import { ChessBoard } from './ChessBoard';
 import { PuzzleInspectorModal } from './PuzzleInspectorModal';
 import { playSound } from '../utils/sound';
@@ -112,6 +113,22 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
       setErrorMsg('');
     }
   }, [activeSource, lang]);
+
+  // Auto translate active puzzle via free translation API if Vietnamese text is missing
+  useEffect(() => {
+    if (lang === 'vi' && activePuzzle && (!activePuzzle.descriptionVi || !activePuzzle.hintVi)) {
+      let isMounted = true;
+      translatePuzzleToVietnamese(activePuzzle).then((translated) => {
+        if (!isMounted) return;
+        setActiveLibrary((prev) =>
+          prev.map((p) => (p.id === translated.id ? translated : p))
+        );
+      });
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [activePuzzle?.id, lang]);
 
   const handleReportSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -359,7 +376,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
         <div>
           <div className="flex items-center justify-center gap-2 flex-wrap">
             <h2 className="text-xl sm:text-2xl font-black text-amber-300">
-              {activePuzzle.title}
+              {lang === 'vi' ? (activePuzzle.titleVi || activePuzzle.title) : activePuzzle.title}
             </h2>
             {activePuzzle.lichessUrl && (
               <a
@@ -374,7 +391,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
             )}
           </div>
           <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto font-medium mt-1">
-            {activePuzzle.description}
+            {lang === 'vi' ? (activePuzzle.descriptionVi || activePuzzle.description) : activePuzzle.description}
           </p>
         </div>
 
@@ -510,7 +527,9 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
                   <Sparkles className="w-4 h-4 text-amber-400" />
                   <span>Duo Owl Hint:</span>
                 </div>
-                <p className="font-semibold">{activePuzzle.hint}</p>
+                <p className="font-semibold">
+                  {lang === 'vi' ? (activePuzzle.hintVi || activePuzzle.hint) : activePuzzle.hint}
+                </p>
               </div>
             )}
 
@@ -632,7 +651,9 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
                     </div>
 
                     <p className="text-xs font-bold text-slate-300 line-clamp-1">
-                      {p.title.replace(/^Level \d+:\s*/, '')}
+                      {lang === 'vi' 
+                        ? (p.titleVi || p.title).replace(/^(Level|Cấp)\s*\d+:\s*/, '') 
+                        : p.title.replace(/^Level \d+:\s*/, '')}
                     </p>
 
                     <div className="flex items-center justify-between text-[10px] text-amber-400 font-bold pt-1 border-t border-slate-700/40">

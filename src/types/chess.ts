@@ -75,10 +75,13 @@ export interface MoveRecord {
 export interface Puzzle {
   id: string;
   title: string;
+  titleVi?: string;
   description: string;
+  descriptionVi?: string;
   fen: string;
   solution: string[]; // sequence of SAN moves (e.g. ["Qxf7#"])
   hint: string;
+  hintVi?: string;
   starsReward: number;
   difficulty: 'Easy' | 'Medium' | 'Hard' | 'Tricky' | 'Expert';
   lichessId?: string;
