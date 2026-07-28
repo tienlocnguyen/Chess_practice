@@ -72,22 +72,6 @@ export const ChessGameView: React.FC<ChessGameViewProps> = ({
     }
   }, [game, gameOverHandled, mode, playerSide, activeAi.stars, onUpdateStats, userProfile.soundEnabled]);
 
-  // Helper to clone Chess instance while preserving move history
-  const cloneChessGame = (srcGame: Chess): Chess => {
-    const newGame = new Chess();
-    const pgn = srcGame.pgn();
-    if (pgn) {
-      try {
-        newGame.loadPgn(pgn);
-        return newGame;
-      } catch {
-        // Fallback if PGN parsing fails
-      }
-    }
-    newGame.load(srcGame.fen());
-    return newGame;
-  };
-
   // AI Turn Trigger
   useEffect(() => {
     let active = true;
@@ -108,7 +92,7 @@ export const ChessGameView: React.FC<ChessGameViewProps> = ({
               to: aiMove.to,
               promotion: aiMove.promotion || 'q',
             });
-            const newGame = cloneChessGame(game);
+            const newGame = new Chess(game.fen());
             setGame(newGame);
             setLastMove(moveResult);
             setHintMove(null);
@@ -143,7 +127,7 @@ export const ChessGameView: React.FC<ChessGameViewProps> = ({
       const move = game.move({ from, to, promotion: promotion || 'q' });
       if (!move) return;
 
-      const newGame = cloneChessGame(game);
+      const newGame = new Chess(game.fen());
       setGame(newGame);
       setLastMove(move);
       setHintMove(null);
@@ -177,7 +161,7 @@ export const ChessGameView: React.FC<ChessGameViewProps> = ({
     } else {
       game.undo();
     }
-    setGame(cloneChessGame(game));
+    setGame(new Chess(game.fen()));
     setLastMove(null);
     setHintMove(null);
     setGameOverHandled(false);

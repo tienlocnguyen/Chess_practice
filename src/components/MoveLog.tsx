@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Copy, Check, Hash, Code } from 'lucide-react';
 import { Language } from '../utils/i18n';
@@ -14,7 +14,6 @@ export const MoveLog: React.FC<MoveLogProps> = ({ game, onUndoMove, canUndo, lan
   const isVi = language === 'vi';
   const [copiedPgn, setCopiedPgn] = useState(false);
   const [copiedFen, setCopiedFen] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const history = game.history({ verbose: true });
 
@@ -27,13 +26,6 @@ export const MoveLog: React.FC<MoveLogProps> = ({ game, onUndoMove, canUndo, lan
       black: history[i + 1]?.san,
     });
   }
-
-  // Auto scroll to bottom when a move is played
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [history.length]);
 
   const handleCopyPgn = () => {
     navigator.clipboard.writeText(game.pgn());
@@ -50,7 +42,7 @@ export const MoveLog: React.FC<MoveLogProps> = ({ game, onUndoMove, canUndo, lan
   return (
     <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-white flex flex-col h-full shadow-xl">
       {/* Move Log Header */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3 shrink-0">
+      <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
         <div className="flex items-center gap-2 text-xs font-bold text-amber-300 uppercase tracking-wider">
           <Hash className="w-4 h-4 text-amber-400" />
           <span>{isVi ? `Lịch Sử Nước Đi (${history.length})` : `Move History (${history.length})`}</span>
@@ -67,7 +59,7 @@ export const MoveLog: React.FC<MoveLogProps> = ({ game, onUndoMove, canUndo, lan
       </div>
 
       {/* Move History Table */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0 pr-1 space-y-1 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto max-h-56 pr-1 space-y-1 scrollbar-thin">
         {movePairs.length === 0 ? (
           <div className="text-center py-8 text-xs text-slate-500 italic">
             {isVi ? 'Chưa có nước đi nào. Hãy bắt đầu nước đi đầu tiên!' : 'No moves played yet. Make your first pawn move!'}
@@ -76,7 +68,7 @@ export const MoveLog: React.FC<MoveLogProps> = ({ game, onUndoMove, canUndo, lan
           movePairs.map((pair) => (
             <div
               key={pair.num}
-              className="grid grid-cols-7 text-xs font-mono py-1 px-2 rounded-lg hover:bg-slate-800/60 transition items-center"
+              className="grid grid-cols-7 text-xs font-mono py-1 px-2 rounded-lg hover:bg-slate-800/60 transition"
             >
               <span className="col-span-1 text-slate-500 font-bold">{pair.num}.</span>
               <span className="col-span-3 text-slate-200 font-semibold">{pair.white || ''}</span>
@@ -87,7 +79,7 @@ export const MoveLog: React.FC<MoveLogProps> = ({ game, onUndoMove, canUndo, lan
       </div>
 
       {/* Footer Copy PGN/FEN Actions */}
-      <div className="mt-3 pt-3 border-t border-slate-800 flex items-center gap-2 shrink-0">
+      <div className="mt-3 pt-3 border-t border-slate-800 flex items-center gap-2">
         <button
           onClick={handleCopyPgn}
           className="flex-1 py-1.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-300 flex items-center justify-center gap-1 border border-slate-700/60 transition"

@@ -47,8 +47,6 @@ export interface UserProfile {
   losses: number;
   draws: number;
   puzzlesSolved: number;
-  completedPuzzleIds?: string[];
-  lastPuzzleIndex?: number;
   unlockedBadges: string[];
   preferredTheme: BoardTheme;
   soundEnabled: boolean;
@@ -79,9 +77,6 @@ export interface Puzzle {
   hint: string;
   starsReward: number;
   difficulty: 'Easy' | 'Medium' | 'Tricky' | 'Expert';
-  titleVi?: string;
-  descriptionVi?: string;
-  hintVi?: string;
 }
 
 export interface Badge {

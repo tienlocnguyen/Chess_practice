@@ -223,7 +223,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Dropdown Menu */}
             <div className="absolute right-0 top-full mt-1.5 hidden group-hover:block bg-slate-900 border border-slate-700/80 rounded-2xl p-2 shadow-2xl w-64 z-50 animate-fade-in space-y-1">
               <div className="px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center justify-between border-b border-slate-800 pb-1.5 mb-1">
-                <span>{getTranslation(lang, 'pieceIconDesign')}</span>
+                <span>{lang === 'vi' ? 'Thiết Kế Quân Cờ' : 'Piece Icon Design'}</span>
                 <span className="text-emerald-400 font-bold">{PIECE_SET_OPTIONS.length} Designs</span>
               </div>
 
@@ -265,7 +265,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className="w-full text-center py-1.5 rounded-xl bg-slate-950 text-emerald-400 hover:bg-emerald-500/20 text-[11px] font-extrabold transition border border-emerald-500/30 flex items-center justify-center gap-1.5"
                 >
                   <Palette className="w-3 h-3 text-emerald-400" />
-                  <span>{getTranslation(lang, 'openGallery')}</span>
+                  <span>{lang === 'vi' ? 'Xem Bộ Sưu Tập Mới' : 'Open Full Icon Gallery'}</span>
                 </button>
               </div>
             </div>
@@ -283,7 +283,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
             <div className="absolute right-0 top-full mt-1.5 hidden group-hover:block bg-slate-900 border border-slate-700/80 rounded-2xl p-2 shadow-2xl w-52 z-50 animate-fade-in space-y-1">
               <div className="px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-1.5 mb-1">
-                {getTranslation(lang, 'boardThemeLabel')}
+                {lang === 'vi' ? 'Giao Diện Bàn Cờ' : 'Board Theme'}
               </div>
               {Object.values(BOARD_THEMES).map((th) => (
                 <button
