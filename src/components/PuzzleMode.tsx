@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Chess, Square } from 'chess.js';
 import { BoardTheme, Puzzle, UserProfile } from '../types/chess';
 import { KID_PUZZLES } from '../utils/puzzles';
-import { fetchLichessDailyPuzzle } from '../utils/lichessApi';
+import { fetchLichessFeaturedPuzzles, fetchLichessDailyPuzzle } from '../utils/lichessApi';
 import { validatePuzzle } from '../utils/puzzleValidator';
 import { ChessBoard } from './ChessBoard';
 import { PuzzleInspectorModal } from './PuzzleInspectorModal';
@@ -66,33 +66,41 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
 
   const lang = userProfile.language || 'vi';
 
-  // Load Lichess Daily Puzzle when user selects 'daily' mode
-  useEffect(() => {
-    if (activeSource === 'daily') {
-      setIsFetchingLichess(true);
-      setLichessError('');
-      fetchLichessDailyPuzzle()
-        .then((p) => {
-          if (p) {
-            setActiveLibrary([p]);
-            setCurrentIdx(0);
-            setGame(new Chess(p.fen));
-            setMoveStep(0);
-            setSolved(false);
-            setShowHint(false);
-            setErrorMsg('');
-          } else {
-            setLichessError(lang === 'vi' ? 'Không thể tải Lichess Daily Puzzle. Đã chuyển về thư viện chuẩn.' : 'Failed to fetch Lichess Daily Puzzle.');
-            setActiveSource('curated');
-            setActiveLibrary(KID_PUZZLES);
-          }
-        })
-        .catch(() => {
-          setLichessError('Failed to fetch Lichess Daily Puzzle.');
+  const loadLichessPuzzles = () => {
+    setIsFetchingLichess(true);
+    setLichessError('');
+    fetchLichessFeaturedPuzzles()
+      .then((puzzles) => {
+        if (puzzles && puzzles.length > 0) {
+          setActiveLibrary(puzzles);
+          setCurrentIdx(0);
+          setGame(new Chess(puzzles[0].fen));
+          setMoveStep(0);
+          setSolved(false);
+          setShowHint(false);
+          setErrorMsg('');
+        } else {
+          setLichessError(
+            lang === 'vi'
+              ? 'Không thể tải Lichess Puzzles. Đã chuyển về thư viện chuẩn.'
+              : 'Failed to fetch Lichess Puzzles.'
+          );
           setActiveSource('curated');
           setActiveLibrary(KID_PUZZLES);
-        })
-        .finally(() => setIsFetchingLichess(false));
+        }
+      })
+      .catch(() => {
+        setLichessError('Failed to fetch Lichess Puzzles.');
+        setActiveSource('curated');
+        setActiveLibrary(KID_PUZZLES);
+      })
+      .finally(() => setIsFetchingLichess(false));
+  };
+
+  // Load Lichess Puzzles gallery when user selects 'daily' / Lichess mode
+  useEffect(() => {
+    if (activeSource === 'daily') {
+      loadLichessPuzzles();
     } else if (activeSource === 'curated') {
       setActiveLibrary(KID_PUZZLES);
       setCurrentIdx(0);
@@ -276,8 +284,23 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
             }`}
           >
             <Globe className="w-4 h-4 text-cyan-400" />
-            <span>{lang === 'vi' ? 'Lichess Daily Puzzle ⚡' : 'Lichess Daily ⚡'}</span>
+            <span>
+              {lang === 'vi' ? 'Bộ Puzzles Lichess ⚡' : 'Lichess Puzzles ⚡'}{' '}
+              {activeSource === 'daily' ? `(${activeLibrary.length})` : ''}
+            </span>
           </button>
+
+          {activeSource === 'daily' && (
+            <button
+              onClick={loadLichessPuzzles}
+              disabled={isFetchingLichess}
+              className="px-3 py-2 rounded-2xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-black transition flex items-center gap-1.5"
+              title={lang === 'vi' ? 'Tải lại / Lấy thêm Puzzles từ Lichess' : 'Refresh / Fetch more Lichess Puzzles'}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isFetchingLichess ? 'animate-spin' : ''}`} />
+              <span>{isFetchingLichess ? (lang === 'vi' ? 'Đang tải...' : 'Loading...') : (lang === 'vi' ? 'Làm Mới' : 'Refresh')}</span>
+            </button>
+          )}
         </div>
 
         <button
