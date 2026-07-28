@@ -4,7 +4,6 @@ import { BOARD_THEMES } from '../utils/themes';
 import { Language, getTranslation } from '../utils/i18n';
 import { playSound } from '../utils/sound';
 import { ChessPiece } from './ChessPiece';
-import { PIECE_SET_OPTIONS } from './ChessIconGalleryModal';
 import { Bot, Users, BookOpen, Puzzle, Sparkles, Settings, Flame, Star, Volume2, VolumeX, Globe, Palette, ChevronDown } from 'lucide-react';
 
 interface NavbarProps {
@@ -34,7 +33,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const lang = userProfile.language || 'vi';
   const currentPieceStyle = userProfile.pieceStyle || 'duo_3d';
-  const activePieceOption = PIECE_SET_OPTIONS.find((p) => p.id === currentPieceStyle) || PIECE_SET_OPTIONS[0];
 
   const handleNavClick = (mode: GameMode) => {
     playSound.buttonClick();
@@ -109,11 +107,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => handleNavClick('training')}
             className="flex items-center gap-3 cursor-pointer group"
           >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 via-emerald-400 to-lime-300 flex items-center justify-center text-slate-950 font-black text-2xl shadow-lg shadow-emerald-500/30 group-hover:scale-105 transition-transform border border-emerald-300/40">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center text-slate-950 font-black text-2xl shadow-lg shadow-emerald-500/30 group-hover:scale-105 transition-transform border border-emerald-300/40">
               🦉
             </div>
             <div>
-              <h1 className="font-black text-lg sm:text-xl tracking-tight bg-gradient-to-r from-emerald-300 via-lime-200 to-amber-200 bg-clip-text text-transparent flex items-center gap-1.5">
+              <h1 className="font-black text-lg sm:text-xl tracking-tight text-emerald-300 flex items-center gap-1.5">
                 <span>{getTranslation(lang, 'appTitle')}</span>
               </h1>
               <p className="text-[11px] text-slate-400 font-medium hidden sm:block">
@@ -143,7 +141,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => handleNavClick('training')}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black transition-all ${
               currentMode === 'training'
-                ? 'bg-gradient-to-r from-emerald-500 to-lime-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
             }`}
           >
@@ -155,7 +153,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => handleNavClick('dual')}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black transition-all ${
               currentMode === 'dual'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 shadow-md shadow-cyan-500/20'
+                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
             }`}
           >
@@ -167,7 +165,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => handleNavClick('puzzles')}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black transition-all ${
               currentMode === 'puzzles'
-                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md shadow-purple-500/20'
+                ? 'bg-purple-500 text-white shadow-md shadow-purple-500/20'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
             }`}
           >
@@ -179,7 +177,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => handleNavClick('rules')}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black transition-all ${
               currentMode === 'rules'
-                ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md shadow-amber-500/20'
+                ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
             }`}
           >
@@ -203,7 +201,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right Desktop Controls & Kid Profile */}
         <div className="hidden md:flex items-center gap-2.5">
-          {/* Piece Icon Quick Selector Dropdown */}
+          {/* Unified Theme & Icon Quick Selector Dropdown */}
           <div className="relative group">
             <button
               onClick={() => {
@@ -211,50 +209,63 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onOpenIconGallery();
               }}
               className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/90 border border-emerald-500/40 text-xs font-bold text-emerald-300 hover:text-white hover:border-emerald-400 transition shadow-sm"
-              title="Choose Chess Piece Design Collection"
+              title="Choose Unified Board & Piece Theme"
             >
+              {/* Active Theme Preview Icon */}
               <div className="w-5 h-5 flex items-center justify-center">
-                <ChessPiece type="k" color="w" pieceStyle={currentPieceStyle} />
+                <ChessPiece type="k" color="w" pieceStyle={BOARD_THEMES[currentTheme]?.pieceStyle || 'duo_3d'} />
               </div>
-              <span>{lang === 'vi' ? activePieceOption.nameVi.split(' ')[0] + ' ' + activePieceOption.nameVi.split(' ')[1] : activePieceOption.nameEn.split(' ')[0] + ' ' + activePieceOption.nameEn.split(' ')[1]}</span>
+              <span>{BOARD_THEMES[currentTheme]?.name || BOARD_THEMES.duolingo.name}</span>
               <ChevronDown className="w-3.5 h-3.5 text-emerald-400 opacity-75 group-hover:rotate-180 transition-transform" />
             </button>
 
             {/* Dropdown Menu */}
-            <div className="absolute right-0 top-full mt-1.5 hidden group-hover:block bg-slate-900 border border-slate-700/80 rounded-2xl p-2 shadow-2xl w-64 z-50 animate-fade-in space-y-1">
+            <div className="absolute right-0 top-full mt-1.5 hidden group-hover:block bg-slate-900 border border-slate-700/80 rounded-2xl p-2.5 shadow-2xl w-72 z-50 animate-fade-in space-y-1.5">
               <div className="px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center justify-between border-b border-slate-800 pb-1.5 mb-1">
-                <span>{lang === 'vi' ? 'Thiết Kế Quân Cờ' : 'Piece Icon Design'}</span>
-                <span className="text-emerald-400 font-bold">{PIECE_SET_OPTIONS.length} Designs</span>
+                <span>{lang === 'vi' ? 'Bộ Chủ Đề Bàn & Quân Cờ' : 'Unified Themes'}</span>
+                <span className="text-emerald-400 font-bold">{Object.keys(BOARD_THEMES).length} Themes</span>
               </div>
 
-              {PIECE_SET_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  onClick={() => {
-                    playSound.buttonClick();
-                    onChangePieceStyle(opt.id);
-                  }}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-between transition group/item ${
-                    currentPieceStyle === opt.id
-                      ? 'bg-gradient-to-r from-emerald-500/20 to-lime-500/20 text-emerald-300 border border-emerald-500/40'
-                      : 'text-slate-300 hover:bg-slate-800/80'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    {/* Mini Icon Pair Preview */}
-                    <div className="flex items-center gap-0.5 bg-slate-950 p-1 rounded-lg border border-slate-800">
-                      <div className="w-5 h-5">
-                        <ChessPiece type="k" color="w" pieceStyle={opt.id} />
+              {Object.values(BOARD_THEMES).map((th) => {
+                const isSelected = currentTheme === th.id;
+                return (
+                  <button
+                    key={th.id}
+                    onClick={() => {
+                      playSound.buttonClick();
+                      onChangeTheme(th.id);
+                      onChangePieceStyle(th.pieceStyle);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-between transition group/item ${
+                      isSelected
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                        : 'text-slate-300 hover:bg-slate-800/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {/* Mini Board & Piece Combo Preview */}
+                      <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
+                        <div className="w-4 h-4 rounded grid grid-cols-2 grid-rows-2 overflow-hidden border border-slate-700 shrink-0">
+                          <div className={th.lightSquare} />
+                          <div className={th.darkSquare} />
+                          <div className={th.darkSquare} />
+                          <div className={th.lightSquare} />
+                        </div>
+                        <div className="w-5 h-5">
+                          <ChessPiece type="k" color="w" pieceStyle={th.pieceStyle} />
+                        </div>
                       </div>
-                      <div className="w-5 h-5">
-                        <ChessPiece type="q" color="b" pieceStyle={opt.id} />
+                      <div>
+                        <div className="truncate">{th.name}</div>
+                        <div className="text-[9px] text-slate-400 font-normal line-clamp-1">
+                          {lang === 'vi' ? th.descriptionVi : th.descriptionEn}
+                        </div>
                       </div>
                     </div>
-                    <span className="truncate">{lang === 'vi' ? opt.nameVi : opt.nameEn}</span>
-                  </div>
-                  {currentPieceStyle === opt.id && <span className="text-emerald-400 font-extrabold ml-1">✓</span>}
-                </button>
-              ))}
+                    {isSelected && <span className="text-emerald-400 font-extrabold ml-1">✓</span>}
+                  </button>
+                );
+              })}
 
               <div className="border-t border-slate-800 pt-1.5 mt-1">
                 <button
@@ -262,46 +273,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                     playSound.buttonClick();
                     onOpenIconGallery();
                   }}
-                  className="w-full text-center py-1.5 rounded-xl bg-slate-950 text-emerald-400 hover:bg-emerald-500/20 text-[11px] font-extrabold transition border border-emerald-500/30 flex items-center justify-center gap-1.5"
+                  className="w-full text-center py-2 rounded-xl bg-slate-950 text-emerald-400 hover:bg-emerald-500/20 text-[11px] font-extrabold transition border border-emerald-500/30 flex items-center justify-center gap-1.5"
                 >
-                  <Palette className="w-3 h-3 text-emerald-400" />
-                  <span>{lang === 'vi' ? 'Xem Bộ Sưu Tập Mới' : 'Open Full Icon Gallery'}</span>
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{lang === 'vi' ? 'Xem Bộ Sưu Tập Theme Trọn Bộ' : 'Open Full Theme Gallery'}</span>
                 </button>
               </div>
-            </div>
-          </div>
-
-          {/* Theme Quick Selector */}
-          <div className="relative group">
-            <button
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white hover:border-amber-500/50 transition shadow-sm"
-              title="Change Board Theme"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>{BOARD_THEMES[currentTheme]?.name || BOARD_THEMES.duolingo.name}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:rotate-180 transition-transform" />
-            </button>
-            <div className="absolute right-0 top-full mt-1.5 hidden group-hover:block bg-slate-900 border border-slate-700/80 rounded-2xl p-2 shadow-2xl w-52 z-50 animate-fade-in space-y-1">
-              <div className="px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-1.5 mb-1">
-                {lang === 'vi' ? 'Giao Diện Bàn Cờ' : 'Board Theme'}
-              </div>
-              {Object.values(BOARD_THEMES).map((th) => (
-                <button
-                  key={th.id}
-                  onClick={() => {
-                    playSound.buttonClick();
-                    onChangeTheme(th.id);
-                  }}
-                  className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold flex items-center justify-between transition ${
-                    currentTheme === th.id
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                      : 'text-slate-300 hover:bg-slate-800'
-                  }`}
-                >
-                  <span>{th.name}</span>
-                  {currentTheme === th.id && <span className="text-emerald-400 font-extrabold">✓</span>}
-                </button>
-              ))}
             </div>
           </div>
 
@@ -311,7 +288,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               playSound.buttonClick();
               onOpenProfile();
             }}
-            className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-gradient-to-r from-slate-800 to-slate-900 border border-emerald-500/40 hover:border-emerald-400 transition shadow-lg group"
+            className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-slate-800 border border-emerald-500/40 hover:border-emerald-400 transition shadow-lg group"
           >
             <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
               {userProfile.avatar}

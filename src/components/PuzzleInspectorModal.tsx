@@ -67,7 +67,7 @@ export const PuzzleInspectorModal: React.FC<PuzzleInspectorModalProps> = ({
         {/* Modal Header */}
         <div className="px-6 py-4 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-emerald-500/20">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-emerald-500/20">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
@@ -217,7 +217,7 @@ export const PuzzleInspectorModal: React.FC<PuzzleInspectorModalProps> = ({
 
                   <button
                     onClick={() => onSelectPuzzle(currentPuzzle)}
-                    className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-black text-xs hover:scale-105 transition shadow-lg shadow-purple-500/20 shrink-0"
+                    className="px-3.5 py-1.5 rounded-xl bg-purple-600 text-white font-black text-xs hover:scale-105 transition shadow-lg shadow-purple-500/20 shrink-0"
                   >
                     {lang === 'vi' ? 'Chơi Bài Này ▶' : 'Play Puzzle ▶'}
                   </button>

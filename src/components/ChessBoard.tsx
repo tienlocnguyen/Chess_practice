@@ -35,6 +35,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
   const [pendingPromotion, setPendingPromotion] = useState<{ from: Square; to: Square } | null>(null);
 
   const themeConfig = BOARD_THEMES[theme] || BOARD_THEMES.duolingo;
+  const effectivePieceStyle = themeConfig.pieceStyle || pieceStyle || 'duo_3d';
 
   // Get legal moves for currently selected square
   const legalDestinations = selectedSquare
@@ -165,7 +166,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
                   {/* Chess Piece */}
                   {piece && (
                     <div className="w-[85%] h-[85%] z-10 relative">
-                      <ChessPiece type={piece.type} color={piece.color} pieceStyle={pieceStyle} />
+                      <ChessPiece type={piece.type} color={piece.color} pieceStyle={effectivePieceStyle} />
                     </div>
                   )}
 

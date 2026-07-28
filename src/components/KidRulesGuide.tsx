@@ -80,7 +80,7 @@ export const KidRulesGuide: React.FC<KidRulesGuideProps> = ({ language = 'vi' })
           <BookOpen className="w-4 h-4 text-emerald-400" />
           <span>{getTranslation(language, 'rules')}</span>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-emerald-300 via-lime-200 to-amber-300 bg-clip-text text-transparent">
+        <h2 className="text-2xl sm:text-3xl font-black text-emerald-300">
           {language === 'vi' ? 'Học Luật Cờ Vua Cùng Thầy Cú Duo 🦉' : 'Chess Rules & Tactics Academy'}
         </h2>
         <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto font-medium">
@@ -98,7 +98,7 @@ export const KidRulesGuide: React.FC<KidRulesGuideProps> = ({ language = 'vi' })
             onClick={() => setSelectedPiece(piece)}
             className={`p-3.5 rounded-2xl border text-center transition-all ${
               selectedPiece.id === piece.id
-                ? 'bg-gradient-to-b from-emerald-500 to-lime-500 text-slate-950 font-black border-white shadow-xl scale-105'
+                ? 'bg-emerald-500 text-slate-950 font-black border-white shadow-xl scale-105'
                 : 'bg-slate-900/80 border-slate-800 text-slate-200 hover:bg-slate-800'
             }`}
           >
@@ -112,7 +112,7 @@ export const KidRulesGuide: React.FC<KidRulesGuideProps> = ({ language = 'vi' })
       </div>
 
       {/* Active Piece Detailed Display */}
-      <div className={`bg-gradient-to-br ${selectedPiece.bg} bg-slate-900 border p-6 sm:p-8 rounded-3xl shadow-2xl space-y-6 relative overflow-hidden`}>
+      <div className="bg-slate-900 border border-emerald-500/30 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-6 relative overflow-hidden">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
           <div className="w-24 h-24 rounded-3xl bg-slate-950/80 border-2 border-emerald-400/50 flex items-center justify-center text-6xl shadow-2xl shrink-0">
             {selectedPiece.icon}

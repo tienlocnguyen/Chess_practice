@@ -11,7 +11,7 @@ export const AI_PERSONALITIES: Record<AiLevel, AiPersonality> = {
     description: 'Makes silly moves and loves hopping around! Perfect for learning how pieces move.',
     difficultyText: 'Level 1: Super Easy',
     stars: 1,
-    color: 'from-pink-400 to-rose-400',
+    color: 'bg-pink-500',
   },
   fox: {
     id: 'fox',
@@ -21,7 +21,7 @@ export const AI_PERSONALITIES: Record<AiLevel, AiPersonality> = {
     description: 'Loves capturing undefended pieces and knows standard moves, but makes funny mistakes!',
     difficultyText: 'Level 2: Easy',
     stars: 2,
-    color: 'from-amber-400 to-orange-400',
+    color: 'bg-amber-500',
   },
   owl: {
     id: 'owl',
@@ -31,7 +31,7 @@ export const AI_PERSONALITIES: Record<AiLevel, AiPersonality> = {
     description: 'Controls the center, guards its pieces, and thinks 2 moves ahead!',
     difficultyText: 'Level 3: Medium',
     stars: 3,
-    color: 'from-emerald-400 to-teal-500',
+    color: 'bg-emerald-500',
   },
   dragon: {
     id: 'dragon',
@@ -41,7 +41,7 @@ export const AI_PERSONALITIES: Record<AiLevel, AiPersonality> = {
     description: 'A formidable opponent! Calculates deep combinations and defends with sharp tactics.',
     difficultyText: 'Level 4: Master',
     stars: 5,
-    color: 'from-purple-500 to-indigo-600',
+    color: 'bg-purple-600',
   },
 };
 

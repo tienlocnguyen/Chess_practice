@@ -3,7 +3,6 @@ import { UserProfile, BoardTheme, PieceStyle } from '../types/chess';
 import { ALL_BADGES } from '../utils/storage';
 import { BOARD_THEMES } from '../utils/themes';
 import { ChessPiece } from './ChessPiece';
-import { PIECE_SET_OPTIONS } from './ChessIconGalleryModal';
 import { X, Trophy, Award, Sparkles, Volume2, VolumeX, Eye, EyeOff, Save, RotateCcw, Settings, Globe, User, Palette } from 'lucide-react';
 
 interface UserProfileModalProps {
@@ -67,11 +66,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
         {/* Modal Header */}
         <div className="flex items-center gap-3.5 mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-400 via-amber-400 to-lime-300 flex items-center justify-center text-slate-950 text-2xl font-black shadow-lg">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center text-slate-950 text-2xl font-black shadow-lg">
             {avatar}
           </div>
           <div>
-            <h2 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-emerald-300 via-amber-200 to-white bg-clip-text text-transparent flex items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-black text-emerald-300 flex items-center gap-2">
               <Settings className="w-5 h-5 text-emerald-400 inline-block" />
               <span>{isVi ? 'Cài Đặt Game & Hồ Sơ Player' : 'Game Settings & Player Profile'}</span>
             </h2>
@@ -116,7 +115,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     onClick={() => setAvatar(av)}
                     className={`w-10 h-10 rounded-2xl text-xl flex items-center justify-center transition-transform shrink-0 ${
                       avatar === av
-                        ? 'bg-gradient-to-tr from-emerald-500 to-lime-400 text-slate-950 scale-110 shadow-lg border-2 border-white'
+                        ? 'bg-emerald-500 text-slate-950 scale-110 shadow-lg border-2 border-white'
                         : 'bg-slate-950 hover:bg-slate-800 border border-slate-700'
                     }`}
                   >
@@ -169,47 +168,63 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
           </div>
 
-          {/* Section 3: Chess Piece Icon Designs */}
+          {/* Section 3: Unified Board & Piece Style Theme Selection */}
           <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80 space-y-3">
             <h3 className="text-xs font-black text-amber-300 uppercase tracking-wider flex items-center gap-2">
-              <Palette className="w-4 h-4 text-amber-300" />
-              <span>{isVi ? '3. Bộ Mẫu Quân Cờ Vua (Chess Piece Icons)' : '3. Chess Piece Icon Collection'}</span>
+              <Sparkles className="w-4 h-4 text-amber-300" />
+              <span>{isVi ? '3. Chủ Đề Giao Diện (Board & Chess Theme)' : '3. Board & Chess Theme Selection'}</span>
             </h3>
 
-            <div className="space-y-2">
-              {PIECE_SET_OPTIONS.map((opt) => {
-                const isSelected = pieceStyle === opt.id;
+            <div className="space-y-2.5">
+              {Object.values(BOARD_THEMES).map((th) => {
+                const isSelected = theme === th.id;
                 return (
                   <button
-                    key={opt.id}
+                    key={th.id}
                     type="button"
-                    onClick={() => setPieceStyle(opt.id)}
+                    onClick={() => {
+                      setTheme(th.id);
+                      setPieceStyle(th.pieceStyle);
+                    }}
                     className={`w-full p-3 rounded-2xl border text-left transition flex items-center justify-between gap-3 ${
                       isSelected
-                        ? 'bg-gradient-to-r from-emerald-950/80 via-slate-900 to-emerald-950/40 border-emerald-400 ring-2 ring-emerald-500/30'
+                        ? 'bg-emerald-950/80 border-emerald-400 ring-2 ring-emerald-500/30'
                         : 'bg-slate-950 border-slate-800 hover:border-slate-700'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      {/* Live Piece Previews */}
-                      <div className="flex items-center gap-1 bg-slate-900 p-1.5 rounded-xl border border-slate-800 shrink-0">
-                        <div className="w-6 h-6">
-                          <ChessPiece type="k" color="w" pieceStyle={opt.id} />
+                      {/* Live Board + Piece Preview Box */}
+                      <div className="flex items-center gap-1.5 bg-slate-900 p-1.5 rounded-xl border border-slate-800 shrink-0">
+                        {/* 2x2 Board Preview */}
+                        <div className="w-8 h-8 rounded-lg grid grid-cols-2 grid-rows-2 overflow-hidden border border-slate-700 shrink-0">
+                          <div className={th.lightSquare} />
+                          <div className={th.darkSquare} />
+                          <div className={th.darkSquare} />
+                          <div className={th.lightSquare} />
                         </div>
-                        <div className="w-6 h-6">
-                          <ChessPiece type="q" color="b" pieceStyle={opt.id} />
-                        </div>
-                        <div className="w-6 h-6">
-                          <ChessPiece type="n" color="w" pieceStyle={opt.id} />
+                        {/* Piece Icons Preview */}
+                        <div className="flex items-center gap-1">
+                          <div className="w-6 h-6">
+                            <ChessPiece type="k" color="w" pieceStyle={th.pieceStyle} />
+                          </div>
+                          <div className="w-6 h-6">
+                            <ChessPiece type="q" color="b" pieceStyle={th.pieceStyle} />
+                          </div>
+                          <div className="w-6 h-6">
+                            <ChessPiece type="n" color="w" pieceStyle={th.pieceStyle} />
+                          </div>
                         </div>
                       </div>
 
                       <div>
-                        <div className="text-xs font-extrabold text-white flex items-center gap-2">
-                          <span>{isVi ? opt.nameVi : opt.nameEn}</span>
+                        <div className="text-xs font-extrabold text-white flex items-center gap-2 flex-wrap">
+                          <span>{th.name}</span>
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            {th.badge}
+                          </span>
                         </div>
                         <div className="text-[10px] text-slate-400 font-medium line-clamp-1">
-                          {isVi ? opt.descriptionVi : opt.descriptionEn}
+                          {isVi ? th.descriptionVi : th.descriptionEn}
                         </div>
                       </div>
                     </div>
@@ -223,36 +238,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 );
               })}
             </div>
-          </div>
-
-          {/* Section 4: Board Themes & Audio Preferences */}
-          <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80 space-y-3">
-            <h3 className="text-xs font-black text-cyan-300 uppercase tracking-wider flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-cyan-300" />
-              <span>{isVi ? '4. Giao Diện Bàn Cờ & Âm Thanh' : '4. Board Themes & Sound'}</span>
-            </h3>
-
-            {/* Board Theme Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {Object.values(BOARD_THEMES).map((th) => (
-                <button
-                  key={th.id}
-                  type="button"
-                  onClick={() => setTheme(th.id)}
-                  className={`p-2.5 rounded-xl border text-left text-xs font-bold flex items-center justify-between transition ${
-                    theme === th.id
-                      ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
-                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
-                  }`}
-                >
-                  <span>{th.name}</span>
-                  {theme === th.id && <span className="text-cyan-400 font-black">✓</span>}
-                </button>
-              ))}
-            </div>
 
             {/* Sound & Helpers */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3 border-t border-slate-700/60">
               <label className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
                 <span className="text-xs font-semibold flex items-center gap-2">
                   {sound ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4 text-slate-500" />}
@@ -292,7 +280,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           </button>
           <button
             onClick={handleSave}
-            className="px-7 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-lime-500 to-amber-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 hover:scale-105 transition flex items-center gap-2"
+            className="px-7 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 hover:scale-105 transition flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
             <span>{isVi ? 'Lưu Cài Đặt Hồ Sơ' : 'Save Settings'}</span>

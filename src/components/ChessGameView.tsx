@@ -207,11 +207,11 @@ export const ChessGameView: React.FC<ChessGameViewProps> = ({
         {/* Mode & Opponent Badge */}
         <div className="flex items-center gap-3">
           {mode === 'training' ? (
-            <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${activeAi.color} flex items-center justify-center text-slate-950 text-2xl font-black shadow-lg shrink-0 border border-white/20`}>
+            <div className={`w-12 h-12 rounded-2xl ${activeAi.color} flex items-center justify-center text-slate-950 text-2xl font-black shadow-lg shrink-0 border border-white/20`}>
               {activeAi.avatar}
             </div>
           ) : (
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-500 flex items-center justify-center text-slate-950 text-2xl font-black shadow-lg shrink-0 border border-white/20">
+            <div className="w-12 h-12 rounded-2xl bg-cyan-500 flex items-center justify-center text-slate-950 text-2xl font-black shadow-lg shrink-0 border border-white/20">
               👥
             </div>
           )}
@@ -293,7 +293,7 @@ export const ChessGameView: React.FC<ChessGameViewProps> = ({
 
           <button
             onClick={handleNewGame}
-            className="px-4 py-2 rounded-2xl bg-gradient-to-r from-emerald-500 via-lime-500 to-emerald-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 hover:scale-105 transition flex items-center gap-1.5 border border-emerald-300/40"
+            className="px-4 py-2 rounded-2xl bg-emerald-500 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 hover:scale-105 transition flex items-center gap-1.5 border border-emerald-300/40"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>{getTranslation(lang, 'newGame')}</span>

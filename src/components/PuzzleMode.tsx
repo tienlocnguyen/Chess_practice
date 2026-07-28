@@ -358,7 +358,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
 
         <div>
           <div className="flex items-center justify-center gap-2 flex-wrap">
-            <h2 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-amber-300 bg-clip-text text-transparent">
+            <h2 className="text-xl sm:text-2xl font-black text-amber-300">
               {activePuzzle.title}
             </h2>
             {activePuzzle.lichessUrl && (
@@ -539,7 +539,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
 
               <button
                 onClick={handleNext}
-                className="w-full py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-extrabold text-xs shadow-lg shadow-purple-500/20 hover:scale-102 transition flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-2xl bg-purple-600 text-white font-extrabold text-xs shadow-lg shadow-purple-500/20 hover:scale-102 transition flex items-center justify-center gap-2"
               >
                 <span>{getTranslation(lang, 'nextPuzzle')}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -567,7 +567,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <PuzzleIcon className="w-5 h-5 text-purple-400" />
-                <h3 className="text-lg font-black bg-gradient-to-r from-purple-300 to-amber-300 bg-clip-text text-transparent">
+                <h3 className="text-lg font-black text-purple-300">
                   {lang === 'vi' ? `Thư Viện ${activeLibrary.length} Puzzles Cờ Vua` : `${activeLibrary.length} Chess Puzzles Gallery`}
                 </h3>
               </div>
@@ -711,7 +711,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 text-white font-extrabold text-xs shadow-lg shadow-rose-500/20 hover:scale-102 transition flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 rounded-xl bg-rose-600 text-white font-extrabold text-xs shadow-lg shadow-rose-500/20 hover:scale-102 transition flex items-center justify-center gap-1.5"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{lang === 'vi' ? 'Gửi Báo Lỗi' : 'Send Report'}</span>

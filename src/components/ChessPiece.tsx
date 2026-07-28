@@ -117,8 +117,8 @@ export const ChessPiece: React.FC<ChessPieceProps> = ({
   // 1. Duo 3D Gamified Style (High contrast 3D rounded badges)
   if (pieceStyle === 'duo_3d') {
     const isWhiteBadge = isWhite
-      ? 'bg-gradient-to-tr from-amber-100 via-amber-50 to-white border-2 border-amber-300/90 shadow-md shadow-amber-500/20'
-      : 'bg-gradient-to-tr from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-400/80 shadow-md shadow-indigo-500/30';
+      ? 'bg-amber-100 border-2 border-amber-300/90 shadow-md shadow-amber-500/20'
+      : 'bg-slate-900 border-2 border-indigo-400/80 shadow-md shadow-indigo-500/30';
 
     const pieceFill = isWhite ? '#ffffff' : '#818cf8';
     const pieceStroke = isWhite ? '#78350f' : '#e0e7ff';
@@ -155,8 +155,8 @@ export const ChessPiece: React.FC<ChessPieceProps> = ({
 
     const emoji = pieceEmojis[pType] || '♟️';
     const badgeBg = isWhite
-      ? 'bg-gradient-to-tr from-amber-100 via-yellow-100 to-amber-200 border-2 border-amber-400 shadow-md shadow-amber-500/20'
-      : 'bg-gradient-to-tr from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-400 shadow-md shadow-indigo-500/30';
+      ? 'bg-amber-100 border-2 border-amber-400 shadow-md shadow-amber-500/20'
+      : 'bg-slate-900 border-2 border-indigo-400 shadow-md shadow-indigo-500/30';
 
     return (
       <div

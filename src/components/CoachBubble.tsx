@@ -17,9 +17,9 @@ export const CoachBubble: React.FC<CoachBubbleProps> = ({
   language = 'vi',
 }) => {
   return (
-    <div className="bg-gradient-to-r from-slate-900 via-emerald-950/40 to-slate-900 p-4 rounded-3xl border border-emerald-500/40 shadow-2xl flex items-start gap-3.5 relative overflow-hidden">
+    <div className="bg-slate-900 p-4 rounded-3xl border border-emerald-500/40 shadow-2xl flex items-start gap-3.5 relative overflow-hidden">
       {/* Duo Mascot Avatar */}
-      <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-400 via-lime-400 to-amber-300 flex items-center justify-center text-slate-950 text-2xl font-black shadow-lg shadow-emerald-500/20 shrink-0 border border-white/40 animate-bounce-slow">
+      <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center text-slate-950 text-2xl font-black shadow-lg shadow-emerald-500/20 shrink-0 border border-white/40 animate-bounce-slow">
         🦉
       </div>
 

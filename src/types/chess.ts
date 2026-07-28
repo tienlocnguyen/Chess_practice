@@ -20,6 +20,9 @@ export type BoardTheme = 'wood' | 'candy' | 'space' | 'forest' | 'neon' | 'duoli
 export interface ThemeConfig {
   id: BoardTheme;
   name: string;
+  badge: string;
+  descriptionEn: string;
+  descriptionVi: string;
   lightSquare: string;
   darkSquare: string;
   highlightSelected: string;
@@ -29,6 +32,7 @@ export interface ThemeConfig {
   cardBg: string;
   borderColor: string;
   textAccent: string;
+  pieceStyle: PieceStyle;
 }
 
 export type PieceStyle = 'staunton' | 'duo_3d' | 'cute_emoji' | 'neon_cyber' | 'wood_carved' | 'flat_minimal';

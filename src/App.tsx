@@ -28,7 +28,8 @@ export default function App() {
   };
 
   const handleChangeTheme = (theme: BoardTheme) => {
-    const updated = { ...profile, preferredTheme: theme };
+    const matchingPieceStyle = BOARD_THEMES[theme]?.pieceStyle || profile.pieceStyle;
+    const updated = { ...profile, preferredTheme: theme, pieceStyle: matchingPieceStyle };
     setProfile(updated);
     saveUserProfile(updated);
   };
@@ -164,6 +165,7 @@ export default function App() {
         onClose={() => setIsIconGalleryOpen(false)}
         userProfile={profile}
         onSelectPieceStyle={handleSelectPieceStyle}
+        onChangeTheme={handleChangeTheme}
       />
     </div>
   );
