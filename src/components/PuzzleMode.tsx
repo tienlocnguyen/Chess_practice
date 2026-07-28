@@ -1,12 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Chess, Square } from 'chess.js';
-import { BoardTheme, UserProfile } from '../types/chess';
+import { BoardTheme, Puzzle, UserProfile } from '../types/chess';
 import { KID_PUZZLES } from '../utils/puzzles';
+import { fetchLichessDailyPuzzle } from '../utils/lichessApi';
+import { validatePuzzle } from '../utils/puzzleValidator';
 import { ChessBoard } from './ChessBoard';
+import { PuzzleInspectorModal } from './PuzzleInspectorModal';
 import { playSound } from '../utils/sound';
 import { getTranslation } from '../utils/i18n';
 import confetti from 'canvas-confetti';
-import { Puzzle as PuzzleIcon, Sparkles, CheckCircle, HelpCircle, RefreshCw, ArrowRight, ArrowLeft, Grid, Filter, X, Star, AlertTriangle, Send } from 'lucide-react';
+import {
+  Puzzle as PuzzleIcon,
+  Sparkles,
+  CheckCircle,
+  HelpCircle,
+  RefreshCw,
+  ArrowRight,
+  ArrowLeft,
+  Grid,
+  X,
+  Star,
+  AlertTriangle,
+  Send,
+  ShieldCheck,
+  Globe,
+  ExternalLink,
+  Zap,
+  Flame,
+  Award,
+} from 'lucide-react';
 
 interface PuzzleModeProps {
   theme: BoardTheme;
@@ -14,18 +36,26 @@ interface PuzzleModeProps {
   onSolvePuzzle: (rewardStars: number) => void;
 }
 
-type FilterDifficulty = 'All' | 'Easy' | 'Medium' | 'Tricky' | 'Expert';
+type FilterDifficulty = 'All' | 'Easy' | 'Medium' | 'Hard';
+type PuzzleSource = 'curated' | 'daily';
 
 export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSolvePuzzle }) => {
+  const [activeSource, setActiveSource] = useState<PuzzleSource>('curated');
+  const [activeLibrary, setActiveLibrary] = useState<Puzzle[]>(KID_PUZZLES);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selectedDifficulty, setSelectedDifficulty] = useState<FilterDifficulty>('All');
+  
   const [isLevelModalOpen, setIsLevelModalOpen] = useState(false);
+  const [isInspectorOpen, setIsInspectorOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportReason, setReportReason] = useState('wrong_position');
   const [reportNote, setReportNote] = useState('');
   const [reportToast, setReportToast] = useState('');
 
-  const activePuzzle = KID_PUZZLES[currentIdx];
+  const [isFetchingLichess, setIsFetchingLichess] = useState(false);
+  const [lichessError, setLichessError] = useState('');
+
+  const activePuzzle = activeLibrary[currentIdx] || KID_PUZZLES[0];
 
   const [game, setGame] = useState(() => new Chess(activePuzzle.fen));
   const [moveStep, setMoveStep] = useState(0);
@@ -36,42 +66,90 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
 
   const lang = userProfile.language || 'vi';
 
+  // Load Lichess Daily Puzzle when user selects 'daily' mode
+  useEffect(() => {
+    if (activeSource === 'daily') {
+      setIsFetchingLichess(true);
+      setLichessError('');
+      fetchLichessDailyPuzzle()
+        .then((p) => {
+          if (p) {
+            setActiveLibrary([p]);
+            setCurrentIdx(0);
+            setGame(new Chess(p.fen));
+            setMoveStep(0);
+            setSolved(false);
+            setShowHint(false);
+            setErrorMsg('');
+          } else {
+            setLichessError(lang === 'vi' ? 'Không thể tải Lichess Daily Puzzle. Đã chuyển về thư viện chuẩn.' : 'Failed to fetch Lichess Daily Puzzle.');
+            setActiveSource('curated');
+            setActiveLibrary(KID_PUZZLES);
+          }
+        })
+        .catch(() => {
+          setLichessError('Failed to fetch Lichess Daily Puzzle.');
+          setActiveSource('curated');
+          setActiveLibrary(KID_PUZZLES);
+        })
+        .finally(() => setIsFetchingLichess(false));
+    } else if (activeSource === 'curated') {
+      setActiveLibrary(KID_PUZZLES);
+      setCurrentIdx(0);
+      const puzzle = KID_PUZZLES[0];
+      setGame(new Chess(puzzle.fen));
+      setMoveStep(0);
+      setSolved(false);
+      setShowHint(false);
+      setErrorMsg('');
+    }
+  }, [activeSource, lang]);
+
   const handleReportSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (userProfile.soundEnabled) playSound.buttonClick();
 
-    // Log feedback or store locally
     const reports = JSON.parse(localStorage.getItem('reported_puzzles') || '[]');
     reports.push({
       level: currentIdx + 1,
       puzzleId: activePuzzle.id,
       reason: reportReason,
       note: reportNote,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
     localStorage.setItem('reported_puzzles', JSON.stringify(reports));
 
-    const msg = lang === 'vi'
-      ? `Cảm ơn bạn! Báo lỗi cho Level ${currentIdx + 1} đã được ghi nhận.`
-      : `Thank you! Feedback for Level ${currentIdx + 1} has been received.`;
-    
+    const msg =
+      lang === 'vi'
+        ? `Cảm ơn bạn! Báo lỗi cho Level ${currentIdx + 1} đã được ghi nhận.`
+        : `Thank you! Feedback for Level ${currentIdx + 1} has been received.`;
+
     setReportToast(msg);
     setIsReportModalOpen(false);
     setReportNote('');
     setTimeout(() => setReportToast(''), 4000);
   };
 
-  const totalPlayerSteps = Math.ceil((activePuzzle.solution.length || 1) / 2);
+  // Move counts calculation
+  const totalSolutionLength = activePuzzle.solution?.length || 1;
+  const totalPlayerSteps = Math.ceil(totalSolutionLength / 2);
   const currentPlayerStep = Math.min(Math.floor(moveStep / 2) + 1, totalPlayerSteps);
 
-  const filteredPuzzles = KID_PUZZLES.filter(
-    (p) => selectedDifficulty === 'All' || p.difficulty === selectedDifficulty
-  );
+  // Helper function to check player move count for filtering
+  const getMoveCount = (p: Puzzle) => Math.ceil((p.solution?.length || 1) / 2);
+
+  const filteredPuzzles = activeLibrary.filter((p) => {
+    const moves = getMoveCount(p);
+    if (selectedDifficulty === 'Easy') return moves <= 1;
+    if (selectedDifficulty === 'Medium') return moves === 2;
+    if (selectedDifficulty === 'Hard') return moves >= 3;
+    return true;
+  });
 
   const selectPuzzleByIdx = (idx: number) => {
     if (userProfile.soundEnabled) playSound.buttonClick();
     setCurrentIdx(idx);
-    const puzzle = KID_PUZZLES[idx];
+    const puzzle = activeLibrary[idx] || KID_PUZZLES[0];
     setGame(new Chess(puzzle.fen));
     setMoveStep(0);
     setIsOpponentMoving(false);
@@ -89,13 +167,17 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
       if (!move) return;
 
       const expectedSan = activePuzzle.solution[moveStep];
-      
+
+      // Match SAN or SAN without special chars or UCI move notation
       const cleanPlayedSan = move.san.replace(/[\+#?!]/g, '');
       const cleanExpectedSan = expectedSan ? expectedSan.replace(/[\+#?!]/g, '') : '';
+      const playedUci = `${from}${to}${promotion || ''}`;
+      const expectedUci = expectedSan ? expectedSan.replace(/[\+#?!]/g, '') : '';
 
-      const isCorrect = 
-        cleanPlayedSan === cleanExpectedSan || 
-        move.san === expectedSan || 
+      const isCorrect =
+        cleanPlayedSan === cleanExpectedSan ||
+        move.san === expectedSan ||
+        playedUci === expectedUci ||
         (activePuzzle.solution.length === 0 && game.isCheckmate());
 
       if (isCorrect) {
@@ -155,17 +237,64 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
   };
 
   const handleNext = () => {
-    const nextIdx = (currentIdx + 1) % KID_PUZZLES.length;
+    const nextIdx = (currentIdx + 1) % activeLibrary.length;
     selectPuzzleByIdx(nextIdx);
   };
 
   const handlePrev = () => {
-    const prevIdx = (currentIdx - 1 + KID_PUZZLES.length) % KID_PUZZLES.length;
+    const prevIdx = (currentIdx - 1 + activeLibrary.length) % activeLibrary.length;
     selectPuzzleByIdx(prevIdx);
   };
 
+  const activeValidation = validatePuzzle(activePuzzle);
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 text-white p-2 sm:p-4 animate-fade-in">
+      
+      {/* Top Source Switcher & Inspector Button */}
+      <div className="bg-slate-900/90 border border-slate-800 p-3 rounded-3xl flex flex-wrap items-center justify-between gap-3 shadow-xl">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setActiveSource('curated')}
+            className={`px-3.5 py-2 rounded-2xl text-xs font-black transition flex items-center gap-1.5 border ${
+              activeSource === 'curated'
+                ? 'bg-purple-600 text-white border-purple-400 shadow-md shadow-purple-500/20'
+                : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-800'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>{lang === 'vi' ? 'Thư Viện Chuẩn Quốc Tế' : 'Qualified Library'} ({KID_PUZZLES.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSource('daily')}
+            disabled={isFetchingLichess}
+            className={`px-3.5 py-2 rounded-2xl text-xs font-black transition flex items-center gap-1.5 border ${
+              activeSource === 'daily'
+                ? 'bg-cyan-600 text-white border-cyan-400 shadow-md shadow-cyan-500/20'
+                : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-800'
+            }`}
+          >
+            <Globe className="w-4 h-4 text-cyan-400" />
+            <span>{lang === 'vi' ? 'Lichess Daily Puzzle ⚡' : 'Lichess Daily ⚡'}</span>
+          </button>
+        </div>
+
+        <button
+          onClick={() => setIsInspectorOpen(true)}
+          className="px-3.5 py-2 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-black text-xs transition flex items-center gap-1.5"
+        >
+          <ShieldCheck className="w-4 h-4 text-amber-400" />
+          <span>{lang === 'vi' ? 'Trình Kiểm Định & Review' : 'Review & Inspector'}</span>
+        </button>
+      </div>
+
+      {lichessError && (
+        <div className="bg-rose-500/20 border border-rose-500/40 p-3 rounded-2xl text-xs text-rose-300 font-bold text-center">
+          {lichessError}
+        </div>
+      )}
+
       {/* Header & Level Bar */}
       <div className="bg-slate-900/90 border border-purple-500/30 p-5 rounded-3xl text-center space-y-3 shadow-2xl">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -179,7 +308,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
 
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/20 text-purple-300 font-extrabold text-xs border border-purple-500/30">
             <PuzzleIcon className="w-4 h-4 text-purple-400" />
-            <span>Level {currentIdx + 1} / {KID_PUZZLES.length}</span>
+            <span>Level {currentIdx + 1} / {activeLibrary.length}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -191,7 +320,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
               className="px-3 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 text-xs font-extrabold flex items-center gap-1.5 border border-purple-500/40 transition"
             >
               <Grid className="w-3.5 h-3.5 text-purple-400" />
-              <span>{lang === 'vi' ? 'Chọn Level (105)' : 'Select Level (105)'}</span>
+              <span>{lang === 'vi' ? `Chọn Level (${activeLibrary.length})` : `Select Level (${activeLibrary.length})`}</span>
             </button>
 
             <button
@@ -205,43 +334,92 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
         </div>
 
         <div>
-          <h2 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-amber-300 bg-clip-text text-transparent">
-            {activePuzzle.title}
-          </h2>
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            <h2 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-amber-300 bg-clip-text text-transparent">
+              {activePuzzle.title}
+            </h2>
+            {activePuzzle.lichessUrl && (
+              <a
+                href={activePuzzle.lichessUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-cyan-400 hover:text-cyan-300 transition"
+                title="View on Lichess.org"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            )}
+          </div>
           <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto font-medium mt-1">
             {activePuzzle.description}
           </p>
         </div>
 
-        {/* Difficulty Filter Pills */}
-        <div className="flex flex-wrap items-center justify-center gap-1.5 pt-1">
-          {(['All', 'Easy', 'Medium', 'Tricky', 'Expert'] as FilterDifficulty[]).map((diff) => (
-            <button
-              key={diff}
-              onClick={() => {
-                if (userProfile.soundEnabled) playSound.buttonClick();
-                setSelectedDifficulty(diff);
-              }}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition border ${
-                selectedDifficulty === diff
-                  ? 'bg-purple-500 text-white border-purple-400 shadow-md shadow-purple-500/20'
-                  : 'bg-slate-800/80 text-slate-400 border-slate-700/60 hover:bg-slate-800 hover:text-slate-200'
-              }`}
-            >
-              {diff === 'All'
-                ? lang === 'vi'
-                  ? 'Tất cả (105)'
-                  : 'All (105)'
-                : diff === 'Easy'
-                ? '🟢 Easy (1-30)'
-                : diff === 'Medium'
-                ? '🟡 Medium (31-65)'
-                : diff === 'Tricky'
-                ? '🟠 Tricky (66-85)'
-                : '🔴 Expert (86-105)'}
-            </button>
-          ))}
+        {/* Move Category Badge & Verification Status */}
+        <div className="flex items-center justify-center gap-2 flex-wrap pt-1">
+          <span className={`px-3 py-1 rounded-full text-xs font-extrabold border flex items-center gap-1.5 ${
+            totalPlayerSteps === 1
+              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+              : totalPlayerSteps === 2
+              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+              : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+          }`}>
+            {totalPlayerSteps === 1 && <Zap className="w-3.5 h-3.5 text-emerald-400" />}
+            {totalPlayerSteps === 2 && <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />}
+            {totalPlayerSteps >= 3 && <Flame className="w-3.5 h-3.5 text-rose-400" />}
+            <span>{totalPlayerSteps} {totalPlayerSteps === 1 ? (lang === 'vi' ? 'Nước để Thắng (Dễ)' : 'Move to Win (Easy)') : totalPlayerSteps === 2 ? (lang === 'vi' ? 'Nước để Thắng (Trung Bình)' : 'Moves to Win (Medium)') : (lang === 'vi' ? 'Nước để Thắng (Khó)' : 'Moves to Win (Hard)')}</span>
+          </span>
+
+          {activeValidation.isValid ? (
+            <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/40 flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              {lang === 'vi' ? '100% Đã Kiểm Định' : '100% Qualified'}
+            </span>
+          ) : (
+            <span className="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-bold border border-rose-500/40 flex items-center gap-1.5">
+              <AlertTriangle className="w-4 h-4 text-rose-400" />
+              {activeValidation.error}
+            </span>
+          )}
+
+          {activePuzzle.lichessRating && (
+            <span className="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 text-xs font-bold border border-cyan-500/40">
+              Lichess Rating: {activePuzzle.lichessRating}
+            </span>
+          )}
         </div>
+
+        {/* Move Count Difficulty Filters */}
+        {activeSource === 'curated' && (
+          <div className="flex flex-wrap items-center justify-center gap-1.5 pt-2">
+            {[
+              { id: 'All', label: lang === 'vi' ? 'Tất cả' : 'All', icon: Award },
+              { id: 'Easy', label: lang === 'vi' ? 'Dễ (1 Nước)' : 'Easy (1 Move)', icon: Zap },
+              { id: 'Medium', label: lang === 'vi' ? 'Trung Bình (2 Nước)' : 'Medium (2 Moves)', icon: ShieldCheck },
+              { id: 'Hard', label: lang === 'vi' ? 'Khó (3 Nước)' : 'Hard (3 Moves)', icon: Flame },
+            ].map((diff) => {
+              const IconComp = diff.icon;
+              const isActive = selectedDifficulty === diff.id;
+              return (
+                <button
+                  key={diff.id}
+                  onClick={() => {
+                    if (userProfile.soundEnabled) playSound.buttonClick();
+                    setSelectedDifficulty(diff.id as FilterDifficulty);
+                  }}
+                  className={`px-3 py-1 rounded-xl text-xs font-extrabold transition border flex items-center gap-1.5 ${
+                    isActive
+                      ? 'bg-purple-600 text-white border-purple-400 shadow-md shadow-purple-500/20'
+                      : 'bg-slate-800/80 text-slate-400 border-slate-700/60 hover:bg-slate-800 hover:text-slate-200'
+                  }`}
+                >
+                  <IconComp className="w-3.5 h-3.5" />
+                  <span>{diff.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
@@ -264,7 +442,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
                 🎯 {lang === 'vi' ? `Nước ${currentPlayerStep} / ${totalPlayerSteps}` : `Step ${currentPlayerStep} of ${totalPlayerSteps}`}
               </span>
               <span className="px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 text-xs font-black border border-emerald-500/30">
-                {activePuzzle.difficulty} • +{activePuzzle.starsReward} ⭐
+                +{activePuzzle.starsReward} ⭐
               </span>
             </div>
 
@@ -367,7 +545,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
               <div className="flex items-center gap-2">
                 <PuzzleIcon className="w-5 h-5 text-purple-400" />
                 <h3 className="text-lg font-black bg-gradient-to-r from-purple-300 to-amber-300 bg-clip-text text-transparent">
-                  {lang === 'vi' ? 'Thư Viện 105 Puzzles Cờ Vua' : '105 Chess Puzzles Gallery'}
+                  {lang === 'vi' ? `Thư Viện ${activeLibrary.length} Puzzles Cờ Vua` : `${activeLibrary.length} Chess Puzzles Gallery`}
                 </h3>
               </div>
               <button
@@ -380,17 +558,22 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
 
             {/* Difficulty Filter in Modal */}
             <div className="flex flex-wrap items-center justify-center gap-1.5 py-1 border-b border-slate-800/80">
-              {(['All', 'Easy', 'Medium', 'Tricky', 'Expert'] as FilterDifficulty[]).map((diff) => (
+              {[
+                { id: 'All', label: lang === 'vi' ? 'Tất cả' : 'All' },
+                { id: 'Easy', label: lang === 'vi' ? 'Dễ (1 Nước)' : 'Easy (1 Move)' },
+                { id: 'Medium', label: lang === 'vi' ? 'Trung Bình (2 Nước)' : 'Medium (2 Moves)' },
+                { id: 'Hard', label: lang === 'vi' ? 'Khó (3 Nước)' : 'Hard (3 Moves)' },
+              ].map((diff) => (
                 <button
-                  key={diff}
-                  onClick={() => setSelectedDifficulty(diff)}
+                  key={diff.id}
+                  onClick={() => setSelectedDifficulty(diff.id as FilterDifficulty)}
                   className={`px-3 py-1 rounded-xl text-xs font-bold transition border ${
-                    selectedDifficulty === diff
+                    selectedDifficulty === diff.id
                       ? 'bg-purple-500 text-white border-purple-400'
                       : 'bg-slate-800/80 text-slate-400 border-slate-700/60 hover:bg-slate-800 hover:text-slate-200'
                   }`}
                 >
-                  {diff}
+                  {diff.label}
                 </button>
               ))}
             </div>
@@ -398,13 +581,13 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
             {/* Grid of Levels */}
             <div className="overflow-y-auto flex-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-1">
               {filteredPuzzles.map((p) => {
-                const globalIdx = KID_PUZZLES.findIndex((item) => item.id === p.id);
+                const globalIdx = activeLibrary.findIndex((item) => item.id === p.id);
                 const isCurrent = globalIdx === currentIdx;
+                const movesCount = getMoveCount(p);
 
                 let difficultyBadgeColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
-                if (p.difficulty === 'Medium') difficultyBadgeColor = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
-                if (p.difficulty === 'Tricky') difficultyBadgeColor = 'bg-orange-500/20 text-orange-300 border-orange-500/30';
-                if (p.difficulty === 'Expert') difficultyBadgeColor = 'bg-rose-500/20 text-rose-300 border-rose-500/30';
+                if (movesCount === 2) difficultyBadgeColor = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+                if (movesCount >= 3) difficultyBadgeColor = 'bg-rose-500/20 text-rose-300 border-rose-500/30';
 
                 return (
                   <button
@@ -421,7 +604,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
                         Lvl {globalIdx + 1}
                       </span>
                       <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-lg border ${difficultyBadgeColor}`}>
-                        {p.difficulty}
+                        {movesCount} {movesCount === 1 ? 'Move' : 'Moves'}
                       </span>
                     </div>
 
@@ -435,7 +618,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
                         +{p.starsReward}
                       </span>
                       <span className="text-slate-400">
-                        {p.solution.length > 0 ? `${Math.ceil(p.solution.length / 2)} moves` : '1 move'}
+                        {movesCount} {movesCount === 1 ? 'move to win' : 'moves to win'}
                       </span>
                     </div>
                   </button>
@@ -445,6 +628,7 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
           </div>
         </div>
       )}
+
       {/* Report Error Modal */}
       {isReportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in">
@@ -514,7 +698,29 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
           </div>
         </div>
       )}
+
+      {/* Puzzle Inspector Modal */}
+      <PuzzleInspectorModal
+        isOpen={isInspectorOpen}
+        onClose={() => setIsInspectorOpen(false)}
+        puzzles={activeLibrary}
+        onSelectPuzzle={(p) => {
+          setIsInspectorOpen(false);
+          const foundIdx = activeLibrary.findIndex((item) => item.id === p.id);
+          if (foundIdx !== -1) {
+            selectPuzzleByIdx(foundIdx);
+          } else {
+            setActiveLibrary([p, ...activeLibrary]);
+            setCurrentIdx(0);
+            setGame(new Chess(p.fen));
+            setMoveStep(0);
+            setSolved(false);
+            setShowHint(false);
+            setErrorMsg('');
+          }
+        }}
+        lang={lang}
+      />
     </div>
   );
 };
-

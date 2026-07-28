@@ -76,7 +76,12 @@ export interface Puzzle {
   solution: string[]; // sequence of SAN moves (e.g. ["Qxf7#"])
   hint: string;
   starsReward: number;
-  difficulty: 'Easy' | 'Medium' | 'Tricky' | 'Expert';
+  difficulty: 'Easy' | 'Medium' | 'Hard' | 'Tricky' | 'Expert';
+  lichessId?: string;
+  lichessRating?: number;
+  lichessUrl?: string;
+  themes?: string[];
+  isVerified?: boolean;
 }
 
 export interface Badge {

@@ -142,29 +142,21 @@ export const ChessPiece: React.FC<ChessPieceProps> = ({
     );
   }
 
-  // 2. Cute Emoji / Animal Characters Style 🦄🐴
+  // 2. Cute Emoji / Animal Characters Style 🐴👑
   if (pieceStyle === 'cute_emoji') {
-    const whiteEmojis: Record<string, string> = {
-      p: '🛡️',
-      n: '🐴', // Horse!
-      b: '🧙‍♂️',
-      r: '🏰',
-      q: '👸',
-      k: '👑',
-    };
-    const blackEmojis: Record<string, string> = {
-      p: '⚔️',
-      n: '🦄', // Unicorn Horse!
-      b: '🧙‍♀️',
-      r: '🛕',
-      q: '👸',
-      k: '♚',
+    const pieceEmojis: Record<string, string> = {
+      p: '♟️',
+      n: '🐴', // Horse for both White & Black Knight
+      b: '🧙‍♂️', // Wizard for both
+      r: '🏰', // Castle for both
+      q: '👸', // Queen for both
+      k: '👑', // Crown for both
     };
 
-    const emoji = isWhite ? whiteEmojis[pType] || '♟' : blackEmojis[pType] || '♟';
+    const emoji = pieceEmojis[pType] || '♟️';
     const badgeBg = isWhite
       ? 'bg-gradient-to-tr from-amber-100 via-yellow-100 to-amber-200 border-2 border-amber-400 shadow-md shadow-amber-500/20'
-      : 'bg-gradient-to-tr from-purple-950 via-indigo-950 to-slate-900 border-2 border-purple-400 shadow-md shadow-purple-500/30';
+      : 'bg-gradient-to-tr from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-400 shadow-md shadow-indigo-500/30';
 
     return (
       <div
@@ -184,8 +176,8 @@ export const ChessPiece: React.FC<ChessPieceProps> = ({
 
   // 3. Neon Cyber Style (Glow outlines)
   if (pieceStyle === 'neon_cyber') {
-    const mainColor = isWhite ? '#38bdf8' : '#f43f5e'; // Cyan vs Rose
-    const strokeGlow = isWhite ? 'drop-shadow-[0_0_6px_rgba(56,189,248,0.8)]' : 'drop-shadow-[0_0_6px_rgba(244,63,94,0.8)]';
+    const mainColor = isWhite ? '#38bdf8' : '#a855f7'; // Cyan vs Neon Purple
+    const strokeGlow = isWhite ? 'drop-shadow-[0_0_6px_rgba(56,189,248,0.8)]' : 'drop-shadow-[0_0_6px_rgba(168,85,247,0.8)]';
 
     return (
       <div

@@ -31,7 +31,7 @@ export const TRANSLATIONS = {
 
     // Game view
     white: 'White ⚪',
-    black: 'Black 🔴',
+    black: 'Black ⚫',
     newGame: 'New Game',
     undo: 'Undo',
     getHint: 'Get Hint',
@@ -154,7 +154,7 @@ export const TRANSLATIONS = {
 
     // Game view
     white: 'Quân Trắng ⚪',
-    black: 'Quân Đen 🔴',
+    black: 'Quân Đen ⚫',
     newGame: 'Ván Mới',
     undo: 'Đi Lại',
     getHint: 'Gợi Ý',
