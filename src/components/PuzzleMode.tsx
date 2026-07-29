@@ -16,6 +16,7 @@ import {
   CheckCircle,
   HelpCircle,
   RefreshCw,
+  RotateCcw,
   ArrowRight,
   ArrowLeft,
   Grid,
@@ -134,15 +135,19 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
     e.preventDefault();
     if (userProfile.soundEnabled) playSound.buttonClick();
 
-    const reports = JSON.parse(localStorage.getItem('reported_puzzles') || '[]');
-    reports.push({
-      level: currentIdx + 1,
-      puzzleId: activePuzzle.id,
-      reason: reportReason,
-      note: reportNote,
-      timestamp: new Date().toISOString(),
-    });
-    localStorage.setItem('reported_puzzles', JSON.stringify(reports));
+    try {
+      const reports = JSON.parse(localStorage.getItem('reported_puzzles') || '[]');
+      reports.push({
+        level: currentIdx + 1,
+        puzzleId: activePuzzle.id,
+        reason: reportReason,
+        note: reportNote,
+        timestamp: new Date().toISOString(),
+      });
+      localStorage.setItem('reported_puzzles', JSON.stringify(reports));
+    } catch {
+      // Ignore storage errors in Safari Private mode
+    }
 
     const msg =
       lang === 'vi'
@@ -464,7 +469,53 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
         {/* Chess Board */}
-        <div className="md:col-span-7">
+        <div className="md:col-span-7 space-y-3">
+          {/* Victory Controls Banner directly above the Chessboard */}
+          {solved && (
+            <div className="bg-emerald-950/95 border-2 border-emerald-400 p-4 rounded-2xl text-center space-y-3 shadow-2xl shadow-emerald-950/80 animate-fade-in">
+              <div className="flex items-center justify-between flex-wrap gap-2 px-1">
+                <div className="flex items-center gap-2 text-emerald-300 font-black text-base sm:text-lg">
+                  <CheckCircle className="w-6 h-6 text-emerald-400 animate-bounce" />
+                  <span>{getTranslation(lang, 'puzzleSolvedTitle')}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300 bg-slate-900/80 py-1 px-3 rounded-full border border-amber-400/30">
+                  <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                  <span>+{activePuzzle.starsReward} {lang === 'vi' ? 'Ngôi sao' : 'Stars'}</span>
+                </div>
+              </div>
+
+              {/* Navigation buttons: Previous, Replay, Next */}
+              <div className="grid grid-cols-3 gap-2 pt-1">
+                <button
+                  onClick={handlePrev}
+                  className="py-2.5 px-2 sm:px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs sm:text-sm font-extrabold transition flex items-center justify-center gap-1.5 shadow-md active:scale-95"
+                  title={lang === 'vi' ? 'Bài trước' : 'Previous puzzle'}
+                >
+                  <ArrowLeft className="w-4 h-4 text-amber-400" />
+                  <span className="truncate">{lang === 'vi' ? 'Bài Trước' : 'Previous'}</span>
+                </button>
+
+                <button
+                  onClick={handleReset}
+                  className="py-2.5 px-2 sm:px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-xs sm:text-sm font-extrabold transition flex items-center justify-center gap-1.5 shadow-md active:scale-95"
+                  title={lang === 'vi' ? 'Chơi lại bài này' : 'Replay puzzle'}
+                >
+                  <RotateCcw className="w-4 h-4 text-amber-400" />
+                  <span className="truncate">{lang === 'vi' ? 'Chơi Lại' : 'Replay'}</span>
+                </button>
+
+                <button
+                  onClick={handleNext}
+                  className="py-2.5 px-2 sm:px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm shadow-lg shadow-emerald-500/30 transition flex items-center justify-center gap-1.5 active:scale-95"
+                  title={lang === 'vi' ? 'Bài tiếp theo' : 'Next puzzle'}
+                >
+                  <span className="truncate">{lang === 'vi' ? 'Bài Tiếp' : 'Next'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
           <ChessBoard
             game={game}
             theme={theme}
@@ -495,14 +546,42 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
 
             {/* Solved Banner */}
             {solved && (
-              <div className="bg-emerald-500/20 border-2 border-emerald-400 p-4 rounded-2xl text-center space-y-2 animate-bounce-slow">
+              <div className="bg-emerald-950/90 border-2 border-emerald-400 p-4 rounded-2xl text-center space-y-3 shadow-xl shadow-emerald-950/50 animate-fade-in">
                 <div className="flex items-center justify-center gap-2 text-emerald-300 font-extrabold text-lg">
                   <CheckCircle className="w-6 h-6 text-emerald-400" />
                   <span>{getTranslation(lang, 'puzzleSolvedTitle')}</span>
                 </div>
-                <p className="text-xs text-emerald-200 font-semibold">
-                  {getTranslation(lang, 'puzzleSolvedDesc')}
-                </p>
+                <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-amber-300 bg-slate-900/60 py-1 px-3 rounded-full w-fit mx-auto border border-amber-400/30">
+                  <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                  <span>+{activePuzzle.starsReward} {lang === 'vi' ? 'Ngôi sao' : 'Stars'}</span>
+                </div>
+
+                {/* Victory Controls: Next, Previous, Replay */}
+                <div className="pt-2 grid grid-cols-3 gap-2">
+                  <button
+                    onClick={handlePrev}
+                    className="py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md active:scale-95"
+                  >
+                    <ArrowLeft className="w-4 h-4 text-amber-400" />
+                    <span className="truncate">{lang === 'vi' ? 'Bài Trước' : 'Previous'}</span>
+                  </button>
+
+                  <button
+                    onClick={handleReset}
+                    className="py-2.5 px-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md active:scale-95"
+                  >
+                    <RotateCcw className="w-4 h-4 text-amber-400" />
+                    <span className="truncate">{lang === 'vi' ? 'Chơi Lại' : 'Replay'}</span>
+                  </button>
+
+                  <button
+                    onClick={handleNext}
+                    className="py-2.5 px-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shadow-lg shadow-emerald-500/30 transition flex items-center justify-center gap-1.5 active:scale-95"
+                  >
+                    <span className="truncate">{lang === 'vi' ? 'Bài Tiếp' : 'Next'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             )}
 
@@ -535,34 +614,48 @@ export const PuzzleMode: React.FC<PuzzleModeProps> = ({ theme, userProfile, onSo
 
             {/* Actions */}
             <div className="space-y-2 pt-2">
-              {!showHint && !solved && (
-                <button
-                  onClick={() => {
-                    if (userProfile.soundEnabled) playSound.buttonClick();
-                    setShowHint(true);
-                  }}
-                  className="w-full py-2.5 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-300 hover:bg-amber-500 hover:text-slate-950 text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-md"
-                >
-                  <HelpCircle className="w-4 h-4" />
-                  <span>{getTranslation(lang, 'showHint')}</span>
-                </button>
+              {!solved && (
+                <>
+                  {!showHint && (
+                    <button
+                      onClick={() => {
+                        if (userProfile.soundEnabled) playSound.buttonClick();
+                        setShowHint(true);
+                      }}
+                      className="w-full py-2.5 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-300 hover:bg-amber-500 hover:text-slate-950 text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-md"
+                    >
+                      <HelpCircle className="w-4 h-4" />
+                      <span>{getTranslation(lang, 'showHint')}</span>
+                    </button>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={handlePrev}
+                      className="py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5"
+                    >
+                      <ArrowLeft className="w-4 h-4 text-amber-400" />
+                      <span>{lang === 'vi' ? 'Bài Trước' : 'Previous'}</span>
+                    </button>
+
+                    <button
+                      onClick={handleReset}
+                      className="py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5"
+                    >
+                      <RefreshCw className="w-4 h-4 text-amber-400" />
+                      <span>{getTranslation(lang, 'resetPuzzle')}</span>
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={handleNext}
+                    className="w-full py-3 rounded-2xl bg-purple-600 text-white font-extrabold text-xs shadow-lg shadow-purple-500/20 hover:scale-102 transition flex items-center justify-center gap-2"
+                  >
+                    <span>{getTranslation(lang, 'nextPuzzle')}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </>
               )}
-
-              <button
-                onClick={handleReset}
-                className="w-full py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition flex items-center justify-center gap-2"
-              >
-                <RefreshCw className="w-4 h-4 text-amber-400" />
-                <span>{getTranslation(lang, 'resetPuzzle')}</span>
-              </button>
-
-              <button
-                onClick={handleNext}
-                className="w-full py-3 rounded-2xl bg-purple-600 text-white font-extrabold text-xs shadow-lg shadow-purple-500/20 hover:scale-102 transition flex items-center justify-center gap-2"
-              >
-                <span>{getTranslation(lang, 'nextPuzzle')}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
 
               <button
                 onClick={() => {

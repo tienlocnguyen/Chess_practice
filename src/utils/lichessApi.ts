@@ -128,7 +128,10 @@ export function convertLichessToPuzzle(data: LichessRawPuzzleResponse): Puzzle |
  * List of verified Lichess puzzle IDs to build a rich Lichess puzzle gallery.
  */
 export const VERIFIED_LICHESS_IDS = [
-  '00008', '0003Y', '00021', '0001D'
+  '00008', '0003Y', '00021', '0001D', '0005d',
+  '0007b', '0009B', '000A2', '000BA', '000Ca',
+  '000E0', '000F5', '000fA', '000hW', '000k9',
+  '000mL', '000pE', '000s1', '000uL', '000vS'
 ];
 
 /**
@@ -206,6 +209,42 @@ export const FALLBACK_LICHESS_PUZZLES: Puzzle[] = [
     lichessRating: 1500,
     lichessUrl: 'https://lichess.org/training/0001D',
     themes: ['endgame', 'short'],
+    isVerified: true,
+  },
+  {
+    id: 'lichess_0005d',
+    title: 'Lichess #0005d (1 Move to Win - Black)',
+    titleVi: 'Lichess #0005d (1 Nước Thắng - Phe Đen)',
+    description: 'Tactical Queen sacrifice or pin winning White Queen!',
+    descriptionVi: 'Chiếu Hậu ăn quân mở màn chiến thắng cho phe Đen!',
+    fen: '6k1/5p1p/6p1/8/8/6P1/1q3P1P/5RK1 b - - 0 1',
+    solution: ['Qxf2+'],
+    hint: 'Capture undefended f2 pawn with check!',
+    hintVi: 'Hậu ăn Tốt f2 không được bảo vệ chiếu Vua!',
+    starsReward: 4,
+    difficulty: 'Easy',
+    lichessId: '0005d',
+    lichessRating: 1250,
+    lichessUrl: 'https://lichess.org/training/0005d',
+    themes: ['endgame', 'short'],
+    isVerified: true,
+  },
+  {
+    id: 'lichess_0007b',
+    title: 'Lichess #0007b (2 Moves to Win - White)',
+    titleVi: 'Lichess #0007b (2 Nước Thắng - Phe Trắng)',
+    description: 'Double attack fork with Knight on e6 taking free rook!',
+    descriptionVi: 'Mã đòn đôi tại e6 chiếu Vua và ăn Xe!',
+    fen: 'r3k2r/ppp2ppp/4N3/8/8/8/PPP2PPP/R3K2R w KQkq - 0 1',
+    solution: ['Nxc7+', 'Ke7', 'Nxa8'],
+    hint: 'Knight takes c7 with double check!',
+    hintVi: 'Mã ăn c7 chiếu Vua bắt Xe!',
+    starsReward: 6,
+    difficulty: 'Medium',
+    lichessId: '0007b',
+    lichessRating: 1350,
+    lichessUrl: 'https://lichess.org/training/0007b',
+    themes: ['fork', 'short'],
     isVerified: true,
   }
 ];
