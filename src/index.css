@@ -12,6 +12,11 @@
   .overflow-y-auto, .overflow-x-auto, .overflow-auto {
     -webkit-overflow-scrolling: touch;
   }
+
+  /* Webkit backdrop filter fallback for older iOS Safari */
+  .backdrop-blur-sm, .backdrop-blur-md, .backdrop-blur-lg, .backdrop-blur {
+    -webkit-backdrop-filter: blur(8px);
+  }
 }
 
 /* Fallback for aspect-ratio on Safari < 15 */

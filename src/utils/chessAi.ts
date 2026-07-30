@@ -128,6 +128,16 @@ function minimax(
   }
 
   const moves = game.moves({ verbose: true });
+  // Move ordering: Prioritize captures and checks to maximize alpha-beta pruning speed on old CPUs
+  moves.sort((a, b) => {
+    let scoreA = 0;
+    let scoreB = 0;
+    if (a.captured) scoreA += PIECE_VALUES[a.captured] || 100;
+    if (b.captured) scoreB += PIECE_VALUES[b.captured] || 100;
+    if (a.san.includes('+')) scoreA += 50;
+    if (b.san.includes('+')) scoreB += 50;
+    return scoreB - scoreA;
+  });
 
   if (isMaximizing) {
     let maxEval = -Infinity;

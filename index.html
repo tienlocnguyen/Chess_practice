@@ -2,8 +2,59 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Chess Master - Tactical Puzzles</title>
+    <script>
+      /* Legacy Safari & Old iPad Polyfills */
+      if (typeof globalThis === 'undefined') { window.globalThis = window; }
+      if (typeof global === 'undefined') { window.global = window; }
+      if (!window.process) { window.process = { env: {} }; }
+      if (!Object.hasOwn) {
+        Object.hasOwn = function(obj, prop) {
+          return Object.prototype.hasOwnProperty.call(obj, prop);
+        };
+      }
+      if (!Array.prototype.flat) {
+        Array.prototype.flat = function(depth) {
+          var flt = [];
+          var d = depth || 1;
+          (function recursiveFlat(arr, currentDepth) {
+            for (var i = 0; i < arr.length; i++) {
+              if (Array.isArray(arr[i]) && currentDepth < d) {
+                recursiveFlat(arr[i], currentDepth + 1);
+              } else if (arr[i] !== undefined) {
+                flt.push(arr[i]);
+              }
+            }
+          })(this, 0);
+          return flt;
+        };
+      }
+      if (!Promise.allSettled) {
+        Promise.allSettled = function(promises) {
+          return Promise.all(promises.map(function(p) {
+            return Promise.resolve(p).then(
+              function(value) { return { status: 'fulfilled', value: value }; },
+              function(reason) { return { status: 'rejected', reason: reason }; }
+            );
+          }));
+        };
+      }
+      if (!window.structuredClone) {
+        window.structuredClone = function(obj) {
+          try {
+            return JSON.parse(JSON.stringify(obj));
+          } catch(e) {
+            return obj;
+          }
+        };
+      }
+      if (window.webkitAudioContext && !window.AudioContext) {
+        window.AudioContext = window.webkitAudioContext;
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
